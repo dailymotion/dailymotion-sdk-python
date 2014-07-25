@@ -25,7 +25,6 @@ setup(name='dailymotion',
       py_modules = ['dailymotion',],
       install_requires=[
           'requests',
-          'pycurl',
-          'nose'
+          'pycurl'
       ],
 )
