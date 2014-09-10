@@ -79,7 +79,7 @@ class Dailymotion(object):
     DEFAULT_DEBUG           = False
     DEFAULT_TIMEOUT         = 5
     DEFAULT_API_BASE_URL    = 'https://api.dailymotion.com'
-    DEFAULT_AUTHORIZE_URL   = 'https://api.dailymotion.com/oauth/authorize'
+    DEFAULT_AUTHORIZE_URL   = 'https://www.dailymotion.com/oauth/authorize'
     DEFAULT_TOKEN_URL       = 'https://api.dailymotion.com/oauth/token'
     DEFAULT_SESSION_STORE   = True
 
