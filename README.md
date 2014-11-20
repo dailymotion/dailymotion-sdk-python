@@ -1,59 +1,70 @@
-This is the python SDK for using Dailymotion Graph API V3.
+A Python wrapper for the Dailymotion Graph API V3.
 
-INSTALL
--------
+Installation
+------------
 
-Install dailymotion module
+```
+$ git clone git@github.com:dailymotion/dailymotion-sdk-python.git
+$ cd dailymotion-sdk-python
+$ python setup.py install
+```
 
-    $ python setup.py install
 
-
-EXAMPLES
+Examples
 --------
 
-Public api call
+Public API call:
 
 ```python
 d = dailymotion.Dailymotion()
 d.get('/videos')
 ```
 
-Authenticated call
+Authenticated call:
 
 ```python
 d = dailymotion.Dailymotion()
-d.set_grant_type('password', api_key=API_KEY, api_secret=API_SECRET, scope=['userinfo'], info={'username': USERNAME, 'password': PASSWORD})
-d.get('/me', {'fields' : 'id,fullname'})
+d.set_grant_type('password', api_key=API_KEY, api_secret=API_SECRET,
+    scope=['userinfo'], info={'username': USERNAME, 'password': PASSWORD})
+d.get('/me', {'fields': 'id,fullname'})
 ```
 
-Publish new video
+Video upload:
 
 ```python
 d = dailymotion.Dailymotion()
-d.set_grant_type('password', api_key=API_KEY, api_secret=API_SECRET, scope=['manage_videos'], info={'username': USERNAME, 'password': PASSWORD})
+d.set_grant_type('password', api_key=API_KEY, api_secret=API_SECRET,
+    scope=['manage_videos'], info={'username': USERNAME, 'password': PASSWORD})
 url = d.upload('./video.mp4')
-d.post('/me/videos', {'url' : url, 'title' : 'MyTitle', 'published' : 'true', 'channel' : 'news'})
+d.post('/me/videos',
+    {'url': url, 'title': 'MyTitle', 'published': 'true', 'channel': 'news'})
 ```
 
-TESTS
+
+Tests
 -----
-1. Install Nose
 
+1.  Install Nose:
+
+    ```
     $ pip install nose
+    ```
 
-2. Create a new file _config.py_.
+2.  Create a new file named _config.py_ with the following content:
 
-```python
-CLIENT_ID = '[YOUR API KEY]'
-CLIENT_SECRET = '[YOUR API SECRET]'
-USERNAME = '[YOUR USERNAME]'
-PASSWORD = '[YOUR PASSWORD]'
-REDIRECT_URI = '[YOUR REDIRECT URI]'
-BASE_URL = 'https://api.dailymotion.com'
-OAUTH_AUTHORIZE_URL = 'https://api.dailymotion.com/oauth/authorize'
-OAUTH_TOKEN_URL = 'https://api.dailymotion.com/oauth/token'
-```
+    ```python
+    CLIENT_ID = '[YOUR API KEY]'
+    CLIENT_SECRET = '[YOUR API SECRET]'
+    USERNAME = '[YOUR USERNAME]'
+    PASSWORD = '[YOUR PASSWORD]'
+    REDIRECT_URI = '[YOUR REDIRECT URI]'
+    BASE_URL = 'https://api.dailymotion.com'
+    OAUTH_AUTHORIZE_URL = 'https://api.dailymotion.com/oauth/authorize'
+    OAUTH_TOKEN_URL = 'https://api.dailymotion.com/oauth/token'
+    ```
 
-3. Run tests
+3.  Run tests:
 
+    ```
     $ nosetests -v
+    ```
