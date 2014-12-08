@@ -1,4 +1,4 @@
-A Python wrapper for the Dailymotion Graph API V3.
+Dailymotion API SDK for Python.
 
 Installation
 ------------
@@ -59,7 +59,7 @@ Tests
     PASSWORD = '[YOUR PASSWORD]'
     REDIRECT_URI = '[YOUR REDIRECT URI]'
     BASE_URL = 'https://api.dailymotion.com'
-    OAUTH_AUTHORIZE_URL = 'https://api.dailymotion.com/oauth/authorize'
+    OAUTH_AUTHORIZE_URL = 'https://www.dailymotion.com/oauth/authorize'
     OAUTH_TOKEN_URL = 'https://api.dailymotion.com/oauth/token'
     ```
 

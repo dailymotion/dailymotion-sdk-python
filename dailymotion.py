@@ -11,7 +11,7 @@ import json
 import StringIO
 
 __author__ = 'Samir AMZANI <samir.amzani@gmail.com>'
-__version__ = '0.0.1'
+__version__ = '0.1.0'
 __python_version__ = '.'.join([str(i) for i in sys.version_info[:3]])
 
 try:
@@ -32,7 +32,12 @@ class SessionStore(object):
 
     def __init__(self, user = 'default'):
         self._user = user
-        self._backend = shelve.open('/tmp/dailymotion_sdk_session_%s' % self._user)
+        self.set_file_store_backend()
+
+    def set_file_store_backend(self):
+        backend_file = '%s/.dailymotion_sdk_session_%s' % (os.path.expanduser('~'), self._user)
+        self._backend = shelve.open('%s/.dailymotion_sdk_session_%s' % (os.path.expanduser('~'), self._user))
+        os.chmod('%s.db' % backend_file, 0600)
 
     def get(self, key, default=None):
         return self._backend.get(key, default)
@@ -376,7 +381,7 @@ class Dailymotion(object):
                 if response.status_code in (400, 401, 403):
                     authenticate_header = response.headers.get('www-authenticate')
                     if authenticate_header:
-                        m = re.match('.*error="(.*?)"(?:, error_description="(.*?)")?', header)
+                        m = re.match('.*error="(.*?)"(?:, error_description="(.*?)")?', authenticate_header)
                         if m:
                             error = m.group(1)
                             msg = m.group(2)
