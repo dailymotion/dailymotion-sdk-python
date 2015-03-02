@@ -371,7 +371,7 @@ class Dailymotion(object):
             raise DailymotionClientError('An unknown error occurred.')
 
         try:
-            content = response.json()
+            content = response.json if isinstance(response.json, dict) else response.json()
         except ValueError:
             raise DailymotionApiError('Unable to parse response, invalid JSON.')
 
