@@ -99,12 +99,12 @@ class Dailymotion(object):
         self._grant_info                    = {}
         self._headers                       = {'Accept' : 'application/json',
                                                 'User-Agent' : 'Dailymotion-Python/%s (Python %s)' % (__version__, __python_version__)}
-        self._session_store_enabled         = session_store_enabled or self.DEFAULT_SESSION_STORE
+        self._session_store_enabled         = self.DEFAULT_SESSION_STORE if session_store_enabled is None else session_store_enabled
         self._session_store                 = None
-        
+
 
     def set_grant_type(self, grant_type = 'client_credentials', api_key=None, api_secret=None, scope=None, info=None):
-        
+
         """
         Grant types:
          - token:
@@ -148,7 +148,7 @@ class Dailymotion(object):
                 raise DailymotionClientError('Missing username or password in grant info for password grant type.')
         else:
             raise DailymotionClientError('Invalid grant type %s.' % grant_type)
-        
+
         self._grant_type = grant_type
 
         if scope:
@@ -342,7 +342,7 @@ class Dailymotion(object):
             if endpoint.find('/') != 0:
                 raise DailymotionClientError('Endpoint must start with / (eg:/me/video)')
             url = '%s%s' % (self.api_base_url, endpoint)
-        
+
         method = method.lower()
 
         if not method in ('get', 'post', 'delete'):
@@ -374,7 +374,7 @@ class Dailymotion(object):
             content = response.json()
         except ValueError:
             raise DailymotionApiError('Unable to parse response, invalid JSON.')
-        
+
 
         if response.status_code != 200:
             if content.get('error') is not None:
