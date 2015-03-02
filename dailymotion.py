@@ -244,9 +244,10 @@ class Dailymotion(object):
                 'client_id': self._grant_info['key'],
                 'client_secret': self._grant_info['secret'],
                 'scope': ' '.join(self._grant_info['scope']) if 'scope' in self._grant_info and self._grant_info['scope'] else '',
-                'username': self._grant_info['username'],
-                'password': self._grant_info['password']
                 }
+            if self._grant_type == 'password':
+                params['username'] = self._grant_info['username']
+                params['password'] = self._grant_info['password']
 
         response = self.oauth_token_request(params)
         return response.get('access_token')
