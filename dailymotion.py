@@ -175,14 +175,14 @@ class Dailymotion(object):
     def oauth_token_request(self, params):
         try:
             result = self.request(self.oauth_token_endpoint_url, 'POST', params)
-        except DailymotionApiError:
+        except DailymotionApiError, e:
             raise DailymotionAuthError(str(e))
 
         if 'error' in result:
             raise DailymotionAuthError(result.get('error_description',''))
 
         if 'access_token' not in result:
-            raise DailymotionAuthError("Invalid token server response : ", str(e))
+            raise DailymotionAuthError("Invalid token server response : ", str(result))
 
         result = {
             'access_token': result['access_token'],
