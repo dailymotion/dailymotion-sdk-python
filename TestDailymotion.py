@@ -100,3 +100,12 @@ class TestA(unittest.TestCase):
                         })
     
 
+    def test_session_store_option(self):
+        d = dailymotion.Dailymotion(session_store_enabled=False)
+        self.assertFalse(d._session_store_enabled)
+
+        d = dailymotion.Dailymotion(session_store_enabled=True)
+        self.assertTrue(d._session_store_enabled)
+
+        d = dailymotion.Dailymotion(session_store_enabled=None)
+        self.assertEqual(d.DEFAULT_SESSION_STORE, d._session_store_enabled)

@@ -99,7 +99,7 @@ class Dailymotion(object):
         self._grant_info                    = {}
         self._headers                       = {'Accept' : 'application/json',
                                                 'User-Agent' : 'Dailymotion-Python/%s (Python %s)' % (__version__, __python_version__)}
-        self._session_store_enabled         = session_store_enabled or self.DEFAULT_SESSION_STORE
+        self._session_store_enabled         = session_store_enabled if session_store_enabled is not None else self.DEFAULT_SESSION_STORE
         self._session_store                 = None
         
 
