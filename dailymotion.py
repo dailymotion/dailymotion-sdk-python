@@ -175,7 +175,7 @@ class Dailymotion(object):
     def oauth_token_request(self, params):
         try:
             result = self.request(self.oauth_token_endpoint_url, 'POST', params)
-        except DailymotionApiError, e:
+        except DailymotionApiError as e:
             raise DailymotionAuthError(str(e))
 
         if 'error' in result:
@@ -236,8 +236,6 @@ class Dailymotion(object):
                     raise DailymotionAuthError(error_msg)
                 else:
                     raise DailymotionAuthError(error_msg)
-            else:
-                raise AuthRequired()
         elif self._grant_type in ('password', 'client_credentials'):
             params = {
                 'grant_type': self._grant_type,
@@ -316,13 +314,13 @@ class Dailymotion(object):
 
         try:
             c.perform()
-        except pycurl.error, e:
+        except pycurl.error as e:
             raise DailymotionUploadTransportError('%s: %s' % (result['upload_url'], e))
         c.close()
 
         try:
             res = response.getvalue()
-        except UnicodeError, e:
+        except UnicodeError as e:
             raise DailymotionUploadInvalidResponse('Invalid API server response: %s' % str(e))
         try:
             response = json.loads(res)
