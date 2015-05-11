@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 import os, sys
 
 setup(name='dailymotion',
-      version='0.1.0',
+      version='0.2.0',
       description='Dailymotion API SDK',
       long_description='Dailymotion API SDK',
       download_url='https://github.com/dailymotion/dailymotion-sdk-python/archive/0.1.0.tar.gz',
@@ -25,6 +25,6 @@ setup(name='dailymotion',
       py_modules = ['dailymotion',],
       install_requires=[
           'requests',
-          'pycurl'
+          'requests_toolbelt'
       ],
 )
