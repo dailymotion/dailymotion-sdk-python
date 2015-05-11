@@ -41,6 +41,7 @@ d.post('/me/videos',
 ```
 
 Authentication:
+---------------
 
 The Dailymotion API requires OAuth 2.0 authentication in order to access protected resources.
 
