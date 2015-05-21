@@ -40,6 +40,29 @@ d.post('/me/videos',
     {'url': url, 'title': 'MyTitle', 'published': 'true', 'channel': 'news'})
 ```
 
+Authentication:
+---------------
+
+The Dailymotion API requires OAuth 2.0 authentication in order to access protected resources.
+
+Contrary to most SDKs, the Dailymotion Python SDK implements lazy authentication, which means that no authentication request is sent as long as no data is requested from the API. At which point, two requests are sent back-to-back during the first request for information, one to authenticate and one to fetch the data.
+
+Please note that the Dailymotion Python SDK also takes care of abstracting the entire OAuth flow, from retrieving, storing and using access tokens, to using refresh tokens to gather new access tokens automatically. You shouldn't have to deal with access tokens manually.
+
+The session storage is enabled by default, you can disabled it by passing `session_store_enabled=false` to the constructor.
+
+Access tokens are stored in memory by default, storing them in you OS files is recommanded :
+
+```python
+import dailymotion
+
+# The ./data directory 
+file_session = dailymotion.FileSessionStore('./data')
+d = dailymotion.Dailymotion(session_storage=file_session)
+....
+```
+
+
 
 Tests
 -----

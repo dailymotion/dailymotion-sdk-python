@@ -4,10 +4,12 @@ import config
 import re
 import pprint
 import time
+import os
 
 class TestA(unittest.TestCase):
 
-    def setUp(self):
+    @classmethod
+    def setUpClass(self):
         self.api_base_url                   = config.BASE_URL or 'http://api.dailymotion.com'
         self.api_key                        = config.CLIENT_ID
         self.api_secret                     = config.CLIENT_SECRET
@@ -17,9 +19,14 @@ class TestA(unittest.TestCase):
         self.redirect_uri                   = config.REDIRECT_URI
         self.oauth_authorize_endpoint_url   = config.OAUTH_AUTHORIZE_URL or 'https://api.dailymotion.com/oauth/authorize'
         self.oauth_token_endpoint_url       = config.OAUTH_TOKEN_URL or 'https://api.dailymotion.com/oauth/token'
+        self.session_file_directory  = './data'
+        if not os.path.exists(self.session_file_directory):
+            os.makedirs(self.session_file_directory)
 
-    def teardown(self):
-        pass
+    @classmethod
+    def tearDownClass(self):
+        if os.path.exists(self.session_file_directory):
+            os.rmdir(self.session_file_directory)
 
     def test_init(self):
         d = dailymotion.Dailymotion()
@@ -60,18 +67,6 @@ class TestA(unittest.TestCase):
         self.assertEqual(isinstance (access_token, str) or isinstance(access_token, unicode), True)
         d.logout()
 
-    def test_get_access_token_with_session(self):
-        d = dailymotion.Dailymotion(api_base_url=self.api_base_url, 
-                                oauth_authorize_endpoint_url=self.oauth_authorize_endpoint_url,
-                                oauth_token_endpoint_url=self.oauth_token_endpoint_url,
-                                session_store_enabled=True)
-        d.set_grant_type('password', api_key=self.api_key, api_secret=self.api_secret, scope=self.scope, info={'username': self.username, 'password': self.password})
-        access_token = d.get_access_token()
-        self.assertEqual(isinstance (access_token, str) or isinstance(access_token, unicode), True)
-        second_access_token = d.get_access_token()
-        self.assertEqual(isinstance (second_access_token, str) or isinstance(second_access_token, unicode), True)
-        self.assertEqual(second_access_token, access_token)
-        d.logout()
 
     def test_auth_call(self):
         d = dailymotion.Dailymotion(api_base_url=self.api_base_url, 
@@ -98,6 +93,7 @@ class TestA(unittest.TestCase):
                             'published' : 'true',
                             'channel' : 'news'
                         })
+        d.logout()
     
 
     def test_session_store_option(self):
@@ -109,3 +105,31 @@ class TestA(unittest.TestCase):
 
         d = dailymotion.Dailymotion(session_store_enabled=None)
         self.assertEqual(d.DEFAULT_SESSION_STORE, d._session_store_enabled)
+
+    def test_in_memory_session(self):
+        d = dailymotion.Dailymotion(api_base_url=self.api_base_url,
+                                oauth_authorize_endpoint_url=self.oauth_authorize_endpoint_url,
+                                oauth_token_endpoint_url=self.oauth_token_endpoint_url,
+                                session_store_enabled=True)
+        d.set_grant_type('password', api_key=self.api_key, api_secret=self.api_secret, scope=self.scope, info={'username': self.username, 'password': self.password})
+        access_token = d.get_access_token()
+        self.assertEqual(isinstance (access_token, str) or isinstance(access_token, unicode), True)
+        second_access_token = d.get_access_token()
+        self.assertEqual(isinstance (second_access_token, str) or isinstance(second_access_token, unicode), True)
+        self.assertEqual(second_access_token, access_token)
+        d.logout()
+
+    def test_file_storage_session(self):
+        fs = dailymotion.FileSessionStore(self.session_file_directory)
+        d = dailymotion.Dailymotion(api_base_url=self.api_base_url,
+                                oauth_authorize_endpoint_url=self.oauth_authorize_endpoint_url,
+                                oauth_token_endpoint_url=self.oauth_token_endpoint_url,
+                                session_store_enabled=True,
+                                session_store=fs)
+        d.set_grant_type('password', api_key=self.api_key, api_secret=self.api_secret, scope=self.scope, info={'username': self.username, 'password': self.password})
+        access_token = d.get_access_token()
+        self.assertEqual(isinstance (access_token, str) or isinstance(access_token, unicode), True)
+        second_access_token = d.get_access_token()
+        self.assertEqual(isinstance (second_access_token, str) or isinstance(second_access_token, unicode), True)
+        self.assertEqual(second_access_token, access_token)
+        d.logout()

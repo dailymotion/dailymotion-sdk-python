@@ -1,17 +1,17 @@
 """ Dailymotion SDK """
 import requests
+from requests_toolbelt import MultipartEncoder
 import time
 import os
 import sys
-import shelve
 import pprint
 import re
-import pycurl
 import json
 import StringIO
+from collections import defaultdict
 
 __author__ = 'Samir AMZANI <samir.amzani@gmail.com>'
-__version__ = '0.1.0'
+__version__ = '0.2.0'
 __python_version__ = '.'.join([str(i) for i in sys.version_info[:3]])
 
 try:
@@ -28,38 +28,6 @@ except ImportError:  # Python 2
         from cgi import parse_qsl
 
 
-class SessionStore(object):
-
-    def __init__(self, user = 'default'):
-        self._user = user
-        self.set_file_store_backend()
-
-    def set_file_store_backend(self):
-        backend_file = '%s/.dailymotion_sdk_session_%s' % (os.path.expanduser('~'), self._user)
-        self._backend = shelve.open('%s/.dailymotion_sdk_session_%s' % (os.path.expanduser('~'), self._user))
-        os.chmod('%s.db' % backend_file, 0600)
-
-    def get(self, key, default=None):
-        return self._backend.get(key, default)
-
-    def update(self, dict):
-        self._backend.update(dict)
-
-    def set(self, key, value):
-        self._backend[key] = value
-
-    def delete(self, key):
-        if key in self._backend:
-            del self._backend[key]
-
-    def clear(self):
-        self._backend.clear()
-
-    def close(self):
-        self._backend.close()
-
-
-
 class DailymotionClientError(Exception):
     def __init__(self, message, error_type=None):
         self.type = error_type
@@ -69,14 +37,103 @@ class DailymotionClientError(Exception):
             self.message = '%s: %s' % (error_type, message)
 
         super(DailymotionClientError, self).__init__(self.message)
-
-
 class DailymotionApiError(DailymotionClientError): pass
 class DailymotionAuthError(DailymotionClientError): pass
 class DailymotionTokenExpired(DailymotionClientError): pass
 class DailymotionUploadTransportError(DailymotionClientError): pass
 class DailymotionUploadInvalidResponse(DailymotionClientError): pass
 class DailymotionUploadError(DailymotionClientError): pass
+
+
+
+class SessionStore(object):
+
+    def __init__(self):
+        self._sessions = defaultdict(dict)
+        self._user     = 'default'
+
+    def set_user(self, user=None):
+        self._user = user if user else 'default'
+
+    def set(self, session):
+        self.current.update(session)
+
+    def get_value(self, value, default=None):
+        return self.current.get(value, default)
+
+    def clear(self):
+        del self.current
+
+    @property
+    def current(self):
+        return self._sessions[self._user]
+
+    @current.setter
+    def current(self, value):
+        self._sessions[self._user] = value
+
+    @current.deleter
+    def current(self):
+        del self._sessions[self._user]
+
+
+class FileSessionStore(object):
+
+    def __init__(self, directory):
+        self._directory = directory
+        self._sessions = defaultdict(dict)
+        self._user = 'default'
+
+    def set_user(self, user=None):
+        self._user = user if user else 'default'
+
+    def set(self, session):
+        self.current.update(session)
+        self.save()
+
+    def get_value(self, value, default=None):
+        return self.current.get(value, default)
+
+    def _get_storage_file(self):
+        return '%s/%s.json' % (self._directory, self._user)
+
+    def _remove(self):
+        try:
+            os.remove(self._get_storage_file())
+        except (IOError, OSError):
+            pass
+
+    def _load(self):
+        try:
+            with open(self._get_storage_file()) as f:
+                self.current = json.loads(f.read())
+        except (ValueError, IOError):
+            pass
+
+    def reload(self):
+        self._load()
+
+    def save(self):
+        with open(self._get_storage_file(), 'w') as f:
+            f.write(json.dumps(self.current))
+
+    def clear(self):
+        del self.current
+
+    @property
+    def current(self):
+        if self._user not in self._sessions:
+            self._load()
+        return self._sessions[self._user]
+
+    @current.setter
+    def current(self, value):
+        self._sessions[self._user] = value
+
+    @current.deleter
+    def current(self):
+        del self._sessions[self._user]
+        self._remove()
 
 
 class Dailymotion(object):
@@ -88,7 +145,7 @@ class Dailymotion(object):
     DEFAULT_TOKEN_URL       = 'https://api.dailymotion.com/oauth/token'
     DEFAULT_SESSION_STORE   = True
 
-    def __init__(self, api_base_url=None, debug=None, timeout=None, oauth_authorize_endpoint_url=None, oauth_token_endpoint_url=None, session_store_enabled=None):
+    def __init__(self, api_base_url=None, debug=None, timeout=None, oauth_authorize_endpoint_url=None, oauth_token_endpoint_url=None, session_store_enabled=None, session_store=None):
 
         self.api_base_url                   = api_base_url or self.DEFAULT_API_BASE_URL
         self.debug                          = debug or self.DEFAULT_DEBUG
@@ -100,8 +157,7 @@ class Dailymotion(object):
         self._headers                       = {'Accept' : 'application/json',
                                                 'User-Agent' : 'Dailymotion-Python/%s (Python %s)' % (__version__, __python_version__)}
         self._session_store_enabled         = self.DEFAULT_SESSION_STORE if session_store_enabled is None else session_store_enabled
-        self._session_store                 = None
-
+        self._session_store                 = SessionStore() if session_store is None else session_store
 
     def set_grant_type(self, grant_type = 'client_credentials', api_key=None, api_secret=None, scope=None, info=None):
 
@@ -134,8 +190,8 @@ class Dailymotion(object):
         else:
             info = {}
 
-        if self._session_store_enabled:
-            self._session_store = SessionStore(info.get('username', 'default'))
+        if self._session_store_enabled and isinstance(info, dict) and info.get('username') is not None:
+            self._session_store.set_user(info.get('username'))
 
         if grant_type in ('authorization', 'token'):
             grant_type = 'authorization'
@@ -155,7 +211,6 @@ class Dailymotion(object):
             if not isinstance(scope, (list, tuple)):
                 raise DailymotionClientError('Invalid scope type: must be a list of valid scopes')
             self._grant_info['scope'] = scope
-
 
     def get_authorization_url(self, redirect_uri=None, scope=None, display='page'):
         if self._grant_type != 'authorization':
@@ -192,7 +247,7 @@ class Dailymotion(object):
             }
 
         if self._session_store_enabled and self._session_store != None:
-            self._session_store.update(result)
+            self._session_store.set(result)
         return result
 
     def get_access_token(self, force_refresh=False, request_args=None):
@@ -201,13 +256,13 @@ class Dailymotion(object):
         if self._grant_type == None:
             return None
 
-        if self._session_store_enabled and self._session_store != None:
-            access_token = self._session_store.get('access_token')
-            if access_token and not force_refresh and time.time() < self._session_store.get('expires', 0):
+        access_token = self._session_store.get_value('access_token')
+        if self._session_store_enabled and access_token is not None:
+            if access_token and not force_refresh and time.time() < self._session_store.get_value('expires', 0):
                 return access_token
 
-        if self._session_store_enabled and self._session_store != None:
-            refresh_token = self._session_store.get('refresh_token')
+        refresh_token = self._session_store.get_value('refresh_token')
+        if self._session_store_enabled and refresh_token is not None:
             if refresh_token:
                 params = {
                     'grant_type': 'refresh_token',
@@ -254,19 +309,14 @@ class Dailymotion(object):
         self.call('/logout')
         self._session_store.clear()
 
-
-
     def get(self, endpoint, params=None):
         return self.call(endpoint, params=params)
-
 
     def post(self, endpoint, params=None, files=None):
         return self.call(endpoint, method='POST', params=params)
 
-
     def delete(self, endpoint, params=None):
         return self.call(endpoint, method='DELETE', params=params)
-
 
     def call(self, endpoint, method='GET', params=None, files=None):
         try:
@@ -282,55 +332,32 @@ class Dailymotion(object):
         return self.request(endpoint, method, params, files)
 
     def upload(self, file_path, progress=None):
-        return self.upload_with_pycurl(file_path, progress)
-
-    def upload_with_requests(self, file_path, progress=None):
-        """
-        Not implemented
-        """
-        pass
-
-    def upload_with_pycurl(self, file_path, progress=None):
         if not os.path.exists(file_path):
             raise IOError("[Errno 2] No such file or directory: '%s'" % file_path)
-        result = self.call('/file/upload')
-
         if isinstance(file_path, unicode):
             file_path = file_path.encode('utf8')
         file_path = os.path.abspath(os.path.expanduser(file_path))
 
-        c = pycurl.Curl()
-        c.setopt(pycurl.URL, str(result['upload_url']))
-        c.setopt(pycurl.USERAGENT, 'Dailymotion-Python/%s (Python %s)' % (__version__, __python_version__))
-        c.setopt(pycurl.HTTPHEADER, ['Expect:'])
-        c.setopt(pycurl.FOLLOWLOCATION, True)
-        c.setopt(pycurl.HTTPPOST, [('file', (pycurl.FORM_FILE, file_path))])
+        result = self.get('/file/upload')
 
-        if progress:
-            c.setopt(pycurl.NOPROGRESS, 0)
-            c.setopt(pycurl.PROGRESSFUNCTION, lambda x, y, total, current: progress(current, total))
+        m = MultipartEncoder(fields={'file': (os.path.basename(file_path), open(file_path, 'rb'))})
 
-        response = StringIO.StringIO()
-        c.setopt(pycurl.WRITEFUNCTION, response.write)
+        headers = {
+            'User-Agent': 'Dailymotion-Python/%s (Python %s)' % (__version__, __python_version__),
+            'Content-Type': m.content_type
+        }
+
+        r = requests.post(result['upload_url'], data=m, headers=headers, timeout=self.timeout)
 
         try:
-            c.perform()
-        except pycurl.error as e:
-            raise DailymotionUploadTransportError('%s: %s' % (result['upload_url'], e))
-        c.close()
-
-        try:
-            res = response.getvalue()
-        except UnicodeError as e:
-            raise DailymotionUploadInvalidResponse('Invalid API server response: %s' % str(e))
-        try:
-            response = json.loads(res)
-        except ValueError, e:
-            raise DailymotionUploadInvalidResponse('Invalid API server response "%s": %s' % (res, str(e)))
+            response = json.loads(r.text)
+        except ValueError as e:
+            raise DailymotionUploadInvalidResponse('Invalid API server response.\n%s' % response)
         if 'error' in response:
             raise DailymotionUploadError(response['error'])
 
         return response['url']
+
 
     def request(self, endpoint, method='GET', params=None, files=None):
         params = params or {}
