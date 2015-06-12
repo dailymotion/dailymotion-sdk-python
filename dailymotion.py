@@ -4,10 +4,8 @@ from requests_toolbelt import MultipartEncoder
 import time
 import os
 import sys
-import pprint
 import re
 import json
-import StringIO
 from collections import defaultdict
 
 __author__ = 'Samir AMZANI <samir.amzani@gmail.com>'

@@ -2,7 +2,6 @@ import dailymotion
 import unittest
 import config
 import re
-import pprint
 import time
 import os
 
@@ -47,7 +46,7 @@ class TestA(unittest.TestCase):
 
     def test_set_grant_type(self):
         d = dailymotion.Dailymotion()
-        self.assertRaises(dailymotion.DailymotionClientError, d.set_grant_type, 'password', api_secret=self.api_secret, scope=self.scope, 
+        self.assertRaises(dailymotion.DailymotionClientError, d.set_grant_type, 'password', api_secret=self.api_secret, scope=self.scope,
             info={'username': self.username, 'password': self.password})
         self.assertRaises(dailymotion.DailymotionClientError, d.set_grant_type, 'password', api_secret=self.api_secret, scope=self.scope)
         self.assertRaises(dailymotion.DailymotionClientError, d.set_grant_type, 'password', api_secret=self.api_secret, scope=None)
@@ -59,7 +58,7 @@ class TestA(unittest.TestCase):
         self.assertEqual(re.match('https?://(?:www)?(?:[\w-]{2,255}(?:\.\w{2,6}){1,2})(?:/[\w&%?#-]{1,300})?',authorization_url) == None, False)
 
     def test_get_access_token(self):
-        d = dailymotion.Dailymotion(api_base_url=self.api_base_url, 
+        d = dailymotion.Dailymotion(api_base_url=self.api_base_url,
                                 oauth_authorize_endpoint_url=self.oauth_authorize_endpoint_url,
                                 oauth_token_endpoint_url=self.oauth_token_endpoint_url)
         d.set_grant_type('password', api_key=self.api_key, api_secret=self.api_secret, scope=self.scope, info={'username': self.username, 'password': self.password})
@@ -69,7 +68,7 @@ class TestA(unittest.TestCase):
 
 
     def test_auth_call(self):
-        d = dailymotion.Dailymotion(api_base_url=self.api_base_url, 
+        d = dailymotion.Dailymotion(api_base_url=self.api_base_url,
                                 oauth_authorize_endpoint_url=self.oauth_authorize_endpoint_url,
                                 oauth_token_endpoint_url=self.oauth_token_endpoint_url,
                                 session_store_enabled=True)
@@ -80,7 +79,7 @@ class TestA(unittest.TestCase):
         d.logout()
 
     def test_upload(self):
-        d = dailymotion.Dailymotion(api_base_url=self.api_base_url, 
+        d = dailymotion.Dailymotion(api_base_url=self.api_base_url,
                                 oauth_authorize_endpoint_url=self.oauth_authorize_endpoint_url,
                                 oauth_token_endpoint_url=self.oauth_token_endpoint_url,
                                 session_store_enabled=True)
@@ -88,13 +87,13 @@ class TestA(unittest.TestCase):
         d.set_grant_type('password', api_key=self.api_key, api_secret=self.api_secret, scope=self.scope, info={'username': self.username, 'password': self.password})
         url = d.upload('./examples/video.mp4')
         self.assertEqual(re.match('https?://(?:www)?(?:[\w-]{2,255}(?:\.\w{2,6}){1,2})(?:/[\w&%?#-]{1,300})?',url) == None, False)
-        d.post('/videos', {'url' : url, 
+        d.post('/videos', {'url' : url,
                             'title' : 'my_test_upload_%s' % time.strftime("%c"),
                             'published' : 'true',
                             'channel' : 'news'
                         })
         d.logout()
-    
+
 
     def test_session_store_option(self):
         d = dailymotion.Dailymotion(session_store_enabled=False)
