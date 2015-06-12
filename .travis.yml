@@ -1,0 +1,10 @@
+language: python
+python:
+  - '2.7'
+  - '3.4'
+install:
+  - pip install -r requirements.txt
+before_script:
+  - flake8
+  - sleep 15
+script: py.test --tb short tests

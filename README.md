@@ -56,7 +56,7 @@ Access tokens are stored in memory by default, storing them in you OS files is r
 ```python
 import dailymotion
 
-# The ./data directory 
+# The ./data directory
 file_session = dailymotion.FileSessionStore('./data')
 d = dailymotion.Dailymotion(session_storage=file_session)
 ....
@@ -67,13 +67,13 @@ d = dailymotion.Dailymotion(session_storage=file_session)
 Tests
 -----
 
-1.  Install Nose:
+1.  Install dependencies:
 
     ```
-    $ pip install nose
+    $ pip install -r requirements.txt
     ```
 
-2.  Create a new file named _config.py_ with the following content:
+2.  Update the file named _config.py_ or set environment variables with the following content:
 
     ```python
     CLIENT_ID = '[YOUR API KEY]'
