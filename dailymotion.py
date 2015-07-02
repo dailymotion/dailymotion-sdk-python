@@ -332,8 +332,12 @@ class Dailymotion(object):
     def upload(self, file_path, progress=None):
         if not os.path.exists(file_path):
             raise IOError("[Errno 2] No such file or directory: '%s'" % file_path)
-        if isinstance(file_path, unicode):
-            file_path = file_path.encode('utf8')
+        # Python3.* quickfix
+        try:
+            if isinstance(file_path, unicode):
+                file_path = file_path.encode('utf8')
+        except NameError:
+            pass
         file_path = os.path.abspath(os.path.expanduser(file_path))
 
         result = self.get('/file/upload')
