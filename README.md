@@ -4,6 +4,12 @@ Installation
 ------------
 
 ```
+$ pip install dailymotion
+```
+
+Or
+
+```
 $ git clone git@github.com:dailymotion/dailymotion-sdk-python.git
 $ cd dailymotion-sdk-python
 $ python setup.py install
