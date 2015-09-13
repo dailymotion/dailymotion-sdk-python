@@ -1,4 +1,5 @@
-Dailymotion API SDK for Python.
+Dailymotion API SDK for Python [![Build Status](https://travis-ci.org/dailymotion/dailymotion-sdk-python.svg?branch=master)](https://travis-ci.org/dailymotion/dailymotion-sdk-python)
+==================
 
 Installation
 ------------
