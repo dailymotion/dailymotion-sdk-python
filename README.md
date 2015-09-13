@@ -96,5 +96,5 @@ Tests
 3.  Run tests:
 
     ```
-    $ nosetests -v
+    $ py.test TestDailymotion.py
     ```
