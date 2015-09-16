@@ -1,4 +1,7 @@
-Dailymotion API SDK for Python.
+Dailymotion API SDK for Python
+==================
+[![Build Status](https://travis-ci.org/dailymotion/dailymotion-sdk-python.svg?branch=master)](https://travis-ci.org/dailymotion/dailymotion-sdk-python) [![Coverage Status](https://coveralls.io/repos/dailymotion/dailymotion-sdk-python/badge.svg?branch=master&service=github)](https://coveralls.io/github/dailymotion/dailymotion-sdk-python?branch=master)
+
 
 Installation
 ------------
@@ -95,5 +98,5 @@ Tests
 3.  Run tests:
 
     ```
-    $ nosetests -v
+    $ py.test TestDailymotion.py
     ```

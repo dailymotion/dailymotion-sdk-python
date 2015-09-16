@@ -1,7 +1,18 @@
 language: python
+
 python:
+  - '2.6'
   - '2.7'
+  - '3.3'
   - '3.4'
+
 install:
   - pip install -r requirements.txt
-script: nosetests
+  - pip install pytest > /dev/null
+  - pip install pytest-cov > /dev/null
+  - pip install coveralls > /dev/null
+
+script: py.test --cov dailymotion.py --cov-report term-missing TestDailymotion.py
+
+after_success:
+    - coveralls
