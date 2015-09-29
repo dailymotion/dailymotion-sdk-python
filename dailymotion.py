@@ -200,8 +200,6 @@ class Dailymotion(object):
         elif grant_type == 'password':
             if 'username' not in info or 'password' not in info:
                 raise DailymotionClientError('Missing username or password in grant info for password grant type.')
-        else:
-            raise DailymotionClientError('Invalid grant type %s.' % grant_type)
 
         self._grant_type = grant_type
 
@@ -289,15 +287,15 @@ class Dailymotion(object):
                     raise DailymotionAuthError(error_msg)
                 else:
                     raise DailymotionAuthError(error_msg)
-        elif self._grant_type in ('password', 'client_credentials'):
+        else:
             params = {
                 'grant_type': self._grant_type,
                 'client_id': self._grant_info['key'],
+                'username': self._grant_info['username'],
                 'client_secret': self._grant_info['secret'],
                 'scope': ' '.join(self._grant_info['scope']) if 'scope' in self._grant_info and self._grant_info['scope'] else '',
                 }
             if self._grant_type == 'password':
-                params['username'] = self._grant_info['username']
                 params['password'] = self._grant_info['password']
 
         response = self.oauth_token_request(params)
