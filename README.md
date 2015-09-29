@@ -60,7 +60,7 @@ Please note that the Dailymotion Python SDK also takes care of abstracting the e
 
 The session storage is enabled by default, you can disabled it by passing `session_store_enabled=false` to the constructor.
 
-Access tokens are stored in memory by default, storing them in you OS files is recommanded :
+Access tokens are stored in memory by default, storing them in your OS files is recommended :
 
 ```python
 import dailymotion
