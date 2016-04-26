@@ -331,7 +331,7 @@ class Dailymotion(object):
         if not os.path.exists(file_path):
             raise IOError("[Errno 2] No such file or directory: '%s'" % file_path)
 
-        if isinstance(file_path, unicode):
+        if sys.version[0] == 2 and isinstance(file_path, unicode):
             file_path = file_path.encode('utf8')
 
         file_path = os.path.abspath(os.path.expanduser(file_path))
