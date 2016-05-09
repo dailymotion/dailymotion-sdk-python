@@ -150,12 +150,21 @@ class Dailymotion(object):
         self.timeout                        = timeout or self.DEFAULT_TIMEOUT
         self.oauth_authorize_endpoint_url   = oauth_authorize_endpoint_url or self.DEFAULT_AUTHORIZE_URL
         self.oauth_token_endpoint_url       = oauth_token_endpoint_url or self.DEFAULT_TOKEN_URL
+        self._access_token                  = None
         self._grant_type                    = None
         self._grant_info                    = {}
         self._headers                       = {'Accept' : 'application/json',
                                                 'User-Agent' : 'Dailymotion-Python/%s (Python %s)' % (__version__, __python_version__)}
         self._session_store_enabled         = self.DEFAULT_SESSION_STORE if session_store_enabled is None else session_store_enabled
         self._session_store                 = SessionStore() if session_store is None else session_store
+
+    @property
+    def access_token(self):
+        return self._access_token
+
+    @access_token.setter
+    def access_token(self, value):
+        self._access_token = value
 
     def set_grant_type(self, grant_type = 'client_credentials', api_key=None, api_secret=None, scope=None, info=None):
 
@@ -176,6 +185,8 @@ class Dailymotion(object):
             This profile is highly discouraged for web-server workflows. If used, the username and password
             MUST NOT be stored by the client.
         """
+
+        self.access_token = None
 
         if api_key and api_secret:
             self._grant_info['key'] = api_key
@@ -248,6 +259,9 @@ class Dailymotion(object):
 
     def get_access_token(self, force_refresh=False, request_args=None):
         params = {}
+
+        if self.access_token is not None:
+            return self.access_token
 
         if self._grant_type == None:
             return None
