@@ -56,6 +56,9 @@ class SessionStore(object):
     def set(self, session):
         self.current.update(session)
 
+    def set_value(self, key, value):
+        self.current[key] = value
+
     def get_value(self, value, default=None):
         return self.current.get(value, default)
 
@@ -150,7 +153,6 @@ class Dailymotion(object):
         self.timeout                        = timeout or self.DEFAULT_TIMEOUT
         self.oauth_authorize_endpoint_url   = oauth_authorize_endpoint_url or self.DEFAULT_AUTHORIZE_URL
         self.oauth_token_endpoint_url       = oauth_token_endpoint_url or self.DEFAULT_TOKEN_URL
-        self._access_token                  = None
         self._grant_type                    = None
         self._grant_info                    = {}
         self._headers                       = {'Accept' : 'application/json',
@@ -158,13 +160,6 @@ class Dailymotion(object):
         self._session_store_enabled         = self.DEFAULT_SESSION_STORE if session_store_enabled is None else session_store_enabled
         self._session_store                 = SessionStore() if session_store is None else session_store
 
-    @property
-    def access_token(self):
-        return self._access_token
-
-    @access_token.setter
-    def access_token(self, value):
-        self._access_token = value
 
     def set_grant_type(self, grant_type = 'client_credentials', api_key=None, api_secret=None, scope=None, info=None):
 
@@ -257,16 +252,19 @@ class Dailymotion(object):
             self._session_store.set(result)
         return result
 
+    def set_access_token(self, access_token):
+        self._session_store.set_value('access_token', access_token)
+
     def get_access_token(self, force_refresh=False, request_args=None):
         params = {}
+        access_token = self._session_store.get_value('access_token')
 
-        if self.access_token is not None:
-            return self.access_token
-
-        if self._grant_type == None:
+        if access_token is None and self._grant_type is None:
             return None
 
-        access_token = self._session_store.get_value('access_token')
+        if access_token:
+            return access_token
+
         if self._session_store_enabled and access_token is not None:
             if access_token and not force_refresh and time.time() < self._session_store.get_value('expires', 0):
                 return access_token
@@ -371,7 +369,6 @@ class Dailymotion(object):
             raise DailymotionUploadError(response['error'])
 
         return response['url']
-
 
     def request(self, endpoint, method='GET', params=None, files=None):
         params = params or {}
