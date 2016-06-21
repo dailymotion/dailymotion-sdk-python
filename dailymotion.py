@@ -9,7 +9,7 @@ import json
 from collections import defaultdict
 
 __author__ = 'Samir AMZANI <samir.amzani@gmail.com>'
-__version__ = '0.2.1'
+__version__ = '0.2.2'
 __python_version__ = '.'.join([str(i) for i in sys.version_info[:3]])
 
 try:
@@ -330,12 +330,10 @@ class Dailymotion(object):
     def upload(self, file_path, progress=None):
         if not os.path.exists(file_path):
             raise IOError("[Errno 2] No such file or directory: '%s'" % file_path)
-        # Python3.* quickfix
-        try:
-            if isinstance(file_path, unicode):
-                file_path = file_path.encode('utf8')
-        except NameError:
-            pass
+
+        if sys.version[0] == 2 and isinstance(file_path, unicode):
+            file_path = file_path.encode('utf8')
+
         file_path = os.path.abspath(os.path.expanduser(file_path))
 
         result = self.get('/file/upload')
