@@ -49,6 +49,14 @@ d.post('/me/videos',
     {'url': url, 'title': 'MyTitle', 'published': 'true', 'channel': 'news'})
 ```
 
+Set your own access_token (assuming your access_token is valide):
+
+```python
+d = dailymotion.Dailymotion
+d.set_access_token(YOUR_ACCESS_TOKEN)
+d.get('/me')
+```
+
 Authentication:
 ---------------
 
