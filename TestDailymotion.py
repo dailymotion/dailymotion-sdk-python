@@ -66,6 +66,13 @@ class TestA(unittest.TestCase):
         self.assertEqual(isinstance (access_token, str) or isinstance(access_token, unicode), True)
         d.logout()
 
+    def test_set_access_token(self):
+        d = dailymotion.Dailymotion()
+        d.set_grant_type('password', api_key=self.api_key, api_secret=self.api_secret, scope=self.scope, info={'username': self.username, 'password': self.password})
+        d.set_access_token(d.get_access_token())
+        response = d.get('/me/?fields=fullname')
+        self.assertEqual(isinstance (response.get('fullname'), str) or isinstance(response.get('fullname'), unicode), True)
+        d.logout()
 
     def test_auth_call(self):
         d = dailymotion.Dailymotion(api_base_url=self.api_base_url,

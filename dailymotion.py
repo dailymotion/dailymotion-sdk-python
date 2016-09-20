@@ -56,6 +56,9 @@ class SessionStore(object):
     def set(self, session):
         self.current.update(session)
 
+    def set_value(self, key, value):
+        self.current[key] = value
+
     def get_value(self, value, default=None):
         return self.current.get(value, default)
 
@@ -157,6 +160,7 @@ class Dailymotion(object):
         self._session_store_enabled         = self.DEFAULT_SESSION_STORE if session_store_enabled is None else session_store_enabled
         self._session_store                 = SessionStore() if session_store is None else session_store
 
+
     def set_grant_type(self, grant_type = 'client_credentials', api_key=None, api_secret=None, scope=None, info=None):
 
         """
@@ -176,6 +180,8 @@ class Dailymotion(object):
             This profile is highly discouraged for web-server workflows. If used, the username and password
             MUST NOT be stored by the client.
         """
+
+        self.access_token = None
 
         if api_key and api_secret:
             self._grant_info['key'] = api_key
@@ -246,13 +252,19 @@ class Dailymotion(object):
             self._session_store.set(result)
         return result
 
+    def set_access_token(self, access_token):
+        self._session_store.set_value('access_token', access_token)
+
     def get_access_token(self, force_refresh=False, request_args=None):
         params = {}
+        access_token = self._session_store.get_value('access_token')
 
-        if self._grant_type == None:
+        if access_token is None and self._grant_type is None:
             return None
 
-        access_token = self._session_store.get_value('access_token')
+        if access_token:
+            return access_token
+
         if self._session_store_enabled and access_token is not None:
             if access_token and not force_refresh and time.time() < self._session_store.get_value('expires', 0):
                 return access_token
@@ -355,7 +367,6 @@ class Dailymotion(object):
             raise DailymotionUploadError(response['error'])
 
         return response['url']
-
 
     def request(self, endpoint, method='GET', params=None, files=None):
         params = params or {}
