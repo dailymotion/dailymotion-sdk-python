@@ -147,13 +147,13 @@ class Dailymotion(object):
         self.oauth_token_endpoint_url = oauth_token_endpoint_url or self.DEFAULT_TOKEN_URL
         self._grant_type = None
         self._grant_info = {}
-        self._headers = {'Accept' : 'application/json',
-                          'User-Agent' : 'Dailymotion-Python/%s (Python %s)' % (__version__, __python_version__)}
+        self._headers = {'Accept': 'application/json',
+                          'User-Agent': 'Dailymotion-Python/%s (Python %s)' % (__version__, __python_version__)}
         self._session_store_enabled = self.DEFAULT_SESSION_STORE if session_store_enabled is None else session_store_enabled
         self._session_store = SessionStore() if session_store is None else session_store
 
 
-    def set_grant_type(self, grant_type = 'client_credentials', api_key=None, api_secret=None, scope=None, info=None):
+    def set_grant_type(self, grant_type='client_credentials', api_key=None, api_secret=None, scope=None, info=None):
 
         """
         Grant types:
@@ -217,7 +217,7 @@ class Dailymotion(object):
             'display': display,
             }
         if scope and type(scope) in (list, tuple):
-            qs['scope'] =  ' '.join(scope)
+            qs['scope'] = ' '.join(scope)
 
         return '%s?%s' % (self.oauth_authorize_endpoint_url, urlencode(qs))
 
@@ -228,14 +228,14 @@ class Dailymotion(object):
             raise DailymotionAuthError(str(e))
 
         if 'error' in result:
-            raise DailymotionAuthError(result.get('error_description',''))
+            raise DailymotionAuthError(result.get('error_description', ''))
 
         if 'access_token' not in result:
             raise DailymotionAuthError("Invalid token server response : ", str(result))
 
         result = {
             'access_token': result['access_token'],
-            'expires': int(time.time() + int(result['expires_in']) * 0.85), # refresh at 85% of expiration time for safety
+            'expires': int(time.time() + int(result['expires_in']) * 0.85),  # refresh at 85% of expiration time for safety
             'refresh_token': result['refresh_token'] if 'refresh_token' in result else None,
             'scope': result['scope'] if 'scope' in result else [],
             }

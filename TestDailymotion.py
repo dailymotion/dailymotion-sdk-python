@@ -19,7 +19,7 @@ class TestA(unittest.TestCase):
         self.redirect_uri = config.REDIRECT_URI
         self.oauth_authorize_endpoint_url = config.OAUTH_AUTHORIZE_URL or 'https://api.dailymotion.com/oauth/authorize'
         self.oauth_token_endpoint_url = config.OAUTH_TOKEN_URL or 'https://api.dailymotion.com/oauth/token'
-        self.session_file_directory  = './data'
+        self.session_file_directory = './data'
         if not os.path.exists(self.session_file_directory):
             os.makedirs(self.session_file_directory)
 
@@ -54,9 +54,9 @@ class TestA(unittest.TestCase):
 
     def test_get_authorization_url(self):
         d = dailymotion.Dailymotion(api_base_url=self.api_base_url, oauth_authorize_endpoint_url=self.oauth_authorize_endpoint_url)
-        d.set_grant_type('authorization', api_key=self.api_key, api_secret=self.api_secret, scope=self.scope, info={'redirect_uri' : self.redirect_uri})
+        d.set_grant_type('authorization', api_key=self.api_key, api_secret=self.api_secret, scope=self.scope, info={'redirect_uri': self.redirect_uri})
         authorization_url = d.get_authorization_url(redirect_uri=self.redirect_uri, scope=self.scope)
-        self.assertEqual(re.match('https?://(?:www)?(?:[\w-]{2,255}(?:\.\w{2,6}){1,2})(?:/[\w&%?#-]{1,300})?',authorization_url) == None, False)
+        self.assertEqual(re.match('https?://(?:www)?(?:[\w-]{2,255}(?:\.\w{2,6}){1,2})(?:/[\w&%?#-]{1,300})?', authorization_url) == None, False)
 
     def test_get_access_token(self):
         d = dailymotion.Dailymotion(api_base_url=self.api_base_url,
@@ -64,7 +64,7 @@ class TestA(unittest.TestCase):
                                 oauth_token_endpoint_url=self.oauth_token_endpoint_url)
         d.set_grant_type('password', api_key=self.api_key, api_secret=self.api_secret, scope=self.scope, info={'username': self.username, 'password': self.password})
         access_token = d.get_access_token()
-        self.assertEqual(isinstance (access_token, str) or isinstance(access_token, unicode), True)
+        self.assertEqual(isinstance(access_token, str) or isinstance(access_token, unicode), True)
         d.logout()
 
     def test_set_access_token(self):
@@ -72,7 +72,7 @@ class TestA(unittest.TestCase):
         d.set_grant_type('password', api_key=self.api_key, api_secret=self.api_secret, scope=self.scope, info={'username': self.username, 'password': self.password})
         d.set_access_token(d.get_access_token())
         response = d.get('/me/?fields=fullname')
-        self.assertEqual(isinstance (response.get('fullname'), str) or isinstance(response.get('fullname'), unicode), True)
+        self.assertEqual(isinstance(response.get('fullname'), str) or isinstance(response.get('fullname'), unicode), True)
         d.logout()
 
     def test_auth_call(self):
@@ -83,7 +83,7 @@ class TestA(unittest.TestCase):
 
         d.set_grant_type('password', api_key=self.api_key, api_secret=self.api_secret, scope=self.scope, info={'username': self.username, 'password': self.password})
         response = d.get('/me/?fields=fullname')
-        self.assertEqual(isinstance (response.get('fullname'), str) or isinstance(response.get('fullname'), unicode), True)
+        self.assertEqual(isinstance(response.get('fullname'), str) or isinstance(response.get('fullname'), unicode), True)
         d.logout()
 
     def test_upload(self):
@@ -95,10 +95,10 @@ class TestA(unittest.TestCase):
         d.set_grant_type('password', api_key=self.api_key, api_secret=self.api_secret, scope=self.scope, info={'username': self.username, 'password': self.password})
         url = d.upload('./examples/video.mp4')
         self.assertEqual(re.match('https?://(?:www)?(?:[\w-]{2,255}(?:\.\w{2,6}){1,2})(?:/[\w&%?#-]{1,300})?',url) == None, False)
-        d.post('/videos', {'url' : url,
-                            'title' : 'my_test_upload_%s' % time.strftime("%c"),
-                            'published' : 'true',
-                            'channel' : 'news'
+        d.post('/videos', {'url': url,
+                            'title': 'my_test_upload_%s' % time.strftime("%c"),
+                            'published': 'true',
+                            'channel': 'news'
                         })
         d.logout()
 
@@ -120,9 +120,9 @@ class TestA(unittest.TestCase):
                                 session_store_enabled=True)
         d.set_grant_type('password', api_key=self.api_key, api_secret=self.api_secret, scope=self.scope, info={'username': self.username, 'password': self.password})
         access_token = d.get_access_token()
-        self.assertEqual(isinstance (access_token, str) or isinstance(access_token, unicode), True)
+        self.assertEqual(isinstance(access_token, str) or isinstance(access_token, unicode), True)
         second_access_token = d.get_access_token()
-        self.assertEqual(isinstance (second_access_token, str) or isinstance(second_access_token, unicode), True)
+        self.assertEqual(isinstance(second_access_token, str) or isinstance(second_access_token, unicode), True)
         self.assertEqual(second_access_token, access_token)
         d.logout()
 
@@ -135,8 +135,8 @@ class TestA(unittest.TestCase):
                                 session_store=fs)
         d.set_grant_type('password', api_key=self.api_key, api_secret=self.api_secret, scope=self.scope, info={'username': self.username, 'password': self.password})
         access_token = d.get_access_token()
-        self.assertEqual(isinstance (access_token, str) or isinstance(access_token, unicode), True)
+        self.assertEqual(isinstance(access_token, str) or isinstance(access_token, unicode), True)
         second_access_token = d.get_access_token()
-        self.assertEqual(isinstance (second_access_token, str) or isinstance(second_access_token, unicode), True)
+        self.assertEqual(isinstance(second_access_token, str) or isinstance(second_access_token, unicode), True)
         self.assertEqual(second_access_token, access_token)
         d.logout()
