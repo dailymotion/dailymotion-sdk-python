@@ -40,7 +40,7 @@ class SessionStore(object):
 
     def __init__(self):
         self._sessions = defaultdict(dict)
-        self._user     = 'default'
+        self._user = 'default'
 
     def set_user(self, user=None):
         self._user = user if user else 'default'
@@ -131,26 +131,26 @@ class FileSessionStore(object):
 
 class Dailymotion(object):
 
-    DEFAULT_DEBUG           = False
-    DEFAULT_TIMEOUT         = 5
-    DEFAULT_API_BASE_URL    = 'https://api.dailymotion.com'
-    DEFAULT_AUTHORIZE_URL   = 'https://www.dailymotion.com/oauth/authorize'
-    DEFAULT_TOKEN_URL       = 'https://api.dailymotion.com/oauth/token'
-    DEFAULT_SESSION_STORE   = True
+    DEFAULT_DEBUG = False
+    DEFAULT_TIMEOUT = 5
+    DEFAULT_API_BASE_URL = 'https://api.dailymotion.com'
+    DEFAULT_AUTHORIZE_URL = 'https://www.dailymotion.com/oauth/authorize'
+    DEFAULT_TOKEN_URL = 'https://api.dailymotion.com/oauth/token'
+    DEFAULT_SESSION_STORE = True
 
     def __init__(self, api_base_url=None, debug=None, timeout=None, oauth_authorize_endpoint_url=None, oauth_token_endpoint_url=None, session_store_enabled=None, session_store=None):
 
-        self.api_base_url                   = api_base_url or self.DEFAULT_API_BASE_URL
-        self.debug                          = debug or self.DEFAULT_DEBUG
-        self.timeout                        = timeout or self.DEFAULT_TIMEOUT
-        self.oauth_authorize_endpoint_url   = oauth_authorize_endpoint_url or self.DEFAULT_AUTHORIZE_URL
-        self.oauth_token_endpoint_url       = oauth_token_endpoint_url or self.DEFAULT_TOKEN_URL
-        self._grant_type                    = None
-        self._grant_info                    = {}
-        self._headers                       = {'Accept' : 'application/json',
-                                                'User-Agent' : 'Dailymotion-Python/%s (Python %s)' % (__version__, __python_version__)}
-        self._session_store_enabled         = self.DEFAULT_SESSION_STORE if session_store_enabled is None else session_store_enabled
-        self._session_store                 = SessionStore() if session_store is None else session_store
+        self.api_base_url = api_base_url or self.DEFAULT_API_BASE_URL
+        self.debug = debug or self.DEFAULT_DEBUG
+        self.timeout = timeout or self.DEFAULT_TIMEOUT
+        self.oauth_authorize_endpoint_url = oauth_authorize_endpoint_url or self.DEFAULT_AUTHORIZE_URL
+        self.oauth_token_endpoint_url = oauth_token_endpoint_url or self.DEFAULT_TOKEN_URL
+        self._grant_type = None
+        self._grant_info = {}
+        self._headers = {'Accept' : 'application/json',
+                          'User-Agent' : 'Dailymotion-Python/%s (Python %s)' % (__version__, __python_version__)}
+        self._session_store_enabled = self.DEFAULT_SESSION_STORE if session_store_enabled is None else session_store_enabled
+        self._session_store = SessionStore() if session_store is None else session_store
 
 
     def set_grant_type(self, grant_type = 'client_credentials', api_key=None, api_secret=None, scope=None, info=None):

@@ -5,19 +5,20 @@ import re
 import time
 import os
 
+
 class TestA(unittest.TestCase):
 
     @classmethod
     def setUpClass(self):
-        self.api_base_url                   = config.BASE_URL or 'http://api.dailymotion.com'
-        self.api_key                        = config.CLIENT_ID
-        self.api_secret                     = config.CLIENT_SECRET
-        self.username                       = config.USERNAME
-        self.password                       = config.PASSWORD
-        self.scope                          = ['manage_videos', 'manage_playlists', 'userinfo']
-        self.redirect_uri                   = config.REDIRECT_URI
-        self.oauth_authorize_endpoint_url   = config.OAUTH_AUTHORIZE_URL or 'https://api.dailymotion.com/oauth/authorize'
-        self.oauth_token_endpoint_url       = config.OAUTH_TOKEN_URL or 'https://api.dailymotion.com/oauth/token'
+        self.api_base_url = config.BASE_URL or 'http://api.dailymotion.com'
+        self.api_key = config.CLIENT_ID
+        self.api_secret = config.CLIENT_SECRET
+        self.username = config.USERNAME
+        self.password = config.PASSWORD
+        self.scope = ['manage_videos', 'manage_playlists', 'userinfo']
+        self.redirect_uri = config.REDIRECT_URI
+        self.oauth_authorize_endpoint_url = config.OAUTH_AUTHORIZE_URL or 'https://api.dailymotion.com/oauth/authorize'
+        self.oauth_token_endpoint_url = config.OAUTH_TOKEN_URL or 'https://api.dailymotion.com/oauth/token'
         self.session_file_directory  = './data'
         if not os.path.exists(self.session_file_directory):
             os.makedirs(self.session_file_directory)
