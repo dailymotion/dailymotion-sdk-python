@@ -366,7 +366,7 @@ class Dailymotion(object):
     def get(self, endpoint, params=None):
         return self.call(endpoint, params=params)
 
-    def post(self, endpoint, params=None, files=None):
+    def post(self, endpoint, params=None):
         return self.call(endpoint, method='POST', params=params)
 
     def delete(self, endpoint, params=None):
@@ -385,7 +385,7 @@ class Dailymotion(object):
 
         return self.request(endpoint, method, params, files)
 
-    def upload(self, file_path, progress=None):
+    def upload(self, file_path):
         if not os.path.exists(file_path):
             raise IOError("[Errno 2] No such file or directory: '%s'" %
                           file_path)
