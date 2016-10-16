@@ -26,5 +26,4 @@ setup(name='dailymotion',
       install_requires=[
           'requests',
           'requests_toolbelt'
-      ]
-)
+      ])
