@@ -27,13 +27,30 @@ class DailymotionClientError(Exception):
             self.message = '%s: %s' % (error_type, message)
 
         super(DailymotionClientError, self).__init__(self.message)
-class DailymotionApiError(DailymotionClientError): pass
-class DailymotionAuthError(DailymotionClientError): pass
-class DailymotionTokenExpired(DailymotionClientError): pass
-class DailymotionUploadTransportError(DailymotionClientError): pass
-class DailymotionUploadInvalidResponse(DailymotionClientError): pass
-class DailymotionUploadError(DailymotionClientError): pass
 
+
+class DailymotionApiError(DailymotionClientError):
+    pass
+
+
+class DailymotionAuthError(DailymotionClientError):
+    pass
+
+
+class DailymotionTokenExpired(DailymotionClientError):
+    pass
+
+
+class DailymotionUploadTransportError(DailymotionClientError):
+    pass
+
+
+class DailymotionUploadInvalidResponse(DailymotionClientError):
+    pass
+
+
+class DailymotionUploadError(DailymotionClientError):
+    pass
 
 
 class SessionStore(object):
