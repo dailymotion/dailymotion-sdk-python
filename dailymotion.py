@@ -155,22 +155,31 @@ class Dailymotion(object):
     DEFAULT_TOKEN_URL = 'https://api.dailymotion.com/oauth/token'
     DEFAULT_SESSION_STORE = True
 
-    def __init__(self, api_base_url=None, debug=None, timeout=None, oauth_authorize_endpoint_url=None, oauth_token_endpoint_url=None, session_store_enabled=None, session_store=None):
+    def __init__(
+            self, api_base_url=None, debug=None, timeout=None,
+            oauth_authorize_endpoint_url=None, oauth_token_endpoint_url=None,
+            session_store_enabled=None, session_store=None):
 
         self.api_base_url = api_base_url or self.DEFAULT_API_BASE_URL
         self.debug = debug or self.DEFAULT_DEBUG
         self.timeout = timeout or self.DEFAULT_TIMEOUT
-        self.oauth_authorize_endpoint_url = oauth_authorize_endpoint_url or self.DEFAULT_AUTHORIZE_URL
-        self.oauth_token_endpoint_url = oauth_token_endpoint_url or self.DEFAULT_TOKEN_URL
+        self.oauth_authorize_endpoint_url = (oauth_authorize_endpoint_url or
+                                             self.DEFAULT_AUTHORIZE_URL)
+        self.oauth_token_endpoint_url = (oauth_token_endpoint_url or
+                                         self.DEFAULT_TOKEN_URL)
         self._grant_type = None
         self._grant_info = {}
         self._headers = {'Accept': 'application/json',
-                          'User-Agent': 'Dailymotion-Python/%s (Python %s)' % (__version__, __python_version__)}
-        self._session_store_enabled = self.DEFAULT_SESSION_STORE if session_store_enabled is None else session_store_enabled
-        self._session_store = SessionStore() if session_store is None else session_store
+                         'User-Agent': 'Dailymotion-Python/%s (Python %s)' %
+                         (__version__, __python_version__)}
+        self._session_store_enabled = (self.DEFAULT_SESSION_STORE
+                                       if session_store_enabled is None
+                                       else session_store_enabled)
+        self._session_store = (SessionStore() if session_store is None
+                               else session_store)
 
-
-    def set_grant_type(self, grant_type='client_credentials', api_key=None, api_secret=None, scope=None, info=None):
+    def set_grant_type(self, grant_type='client_credentials', api_key=None,
+                       api_secret=None, scope=None, info=None):
 
         """
         Grant types:
@@ -209,29 +218,36 @@ class Dailymotion(object):
         else:
             info = {}
 
-        if self._session_store_enabled and isinstance(info, dict) and info.get('username') is not None:
+        if (self._session_store_enabled and isinstance(info, dict) and
+                info.get('username') is not None):
             self._session_store.set_user(info.get('username'))
 
         if grant_type in ('authorization', 'token'):
             grant_type = 'authorization'
             if 'redirect_uri' not in info:
-                raise DailymotionClientError('Missing redirect_uri in grant info for token grant type.')
+                raise DailymotionClientError('Missing redirect_uri in grant '
+                                             'info for token grant type.')
         elif grant_type in ('client_credentials', 'none'):
             grant_type = 'client_credentials'
         elif grant_type == 'password':
             if 'username' not in info or 'password' not in info:
-                raise DailymotionClientError('Missing username or password in grant info for password grant type.')
+                raise DailymotionClientError('Missing username or password in '
+                                             'grant info for password grant '
+                                             'type.')
 
         self._grant_type = grant_type
 
         if scope:
             if not isinstance(scope, (list, tuple)):
-                raise DailymotionClientError('Invalid scope type: must be a list of valid scopes')
+                raise DailymotionClientError('Invalid scope type: must be a '
+                                             'list of valid scopes')
             self._grant_info['scope'] = scope
 
-    def get_authorization_url(self, redirect_uri=None, scope=None, display='page'):
+    def get_authorization_url(self, redirect_uri=None, scope=None,
+                              display='page'):
         if self._grant_type != 'authorization':
-            raise DailymotionClientError('This method can only be used with TOKEN grant type.')
+            raise DailymotionClientError('This method can only be used with '
+                                         'TOKEN grant type.')
 
         qs = {
             'response_type': 'code',
@@ -246,7 +262,8 @@ class Dailymotion(object):
 
     def oauth_token_request(self, params):
         try:
-            result = self.request(self.oauth_token_endpoint_url, 'POST', params)
+            result = self.request(self.oauth_token_endpoint_url, 'POST',
+                                  params)
         except DailymotionApiError as e:
             raise DailymotionAuthError(str(e))
 
@@ -254,12 +271,16 @@ class Dailymotion(object):
             raise DailymotionAuthError(result.get('error_description', ''))
 
         if 'access_token' not in result:
-            raise DailymotionAuthError("Invalid token server response : ", str(result))
+            raise DailymotionAuthError("Invalid token server response : ",
+                                       str(result))
 
         result = {
             'access_token': result['access_token'],
-            'expires': int(time.time() + int(result['expires_in']) * 0.85),  # refresh at 85% of expiration time for safety
-            'refresh_token': result['refresh_token'] if 'refresh_token' in result else None,
+            # refresh at 85% of expiration time for safety
+            'expires': int(time.time() + int(result['expires_in']) * 0.85),
+            'refresh_token': (result['refresh_token']
+                              if 'refresh_token' in result
+                              else None),
             'scope': result['scope'] if 'scope' in result else [],
             }
 
@@ -281,7 +302,8 @@ class Dailymotion(object):
             return access_token
 
         if self._session_store_enabled and access_token is not None:
-            if access_token and not force_refresh and time.time() < self._session_store.get_value('expires', 0):
+            if (access_token and not force_refresh and
+                    time.time() < self._session_store.get_value('expires', 0)):
                 return access_token
 
         refresh_token = self._session_store.get_value('refresh_token')
@@ -291,7 +313,10 @@ class Dailymotion(object):
                     'grant_type': 'refresh_token',
                     'client_id': self._grant_info['key'],
                     'client_secret': self._grant_info['secret'],
-                    'scope': ' '.join(self._grant_info['scope']) if 'scope' in self._grant_info and self._grant_info['scope'] else '',
+                    'scope': (' '.join(self._grant_info['scope'])
+                              if 'scope' in self._grant_info and
+                              self._grant_info['scope']
+                              else ''),
                     'refresh_token': refresh_token,
                     }
                 response = self.oauth_token_request(params)
@@ -304,7 +329,10 @@ class Dailymotion(object):
                     'client_id': self._grant_info['key'],
                     'client_secret': self._grant_info['secret'],
                     'redirect_uri': self._grant_info['redirect_uri'],
-                    'scope': ' '.join(self._grant_info['scope']) if 'scope' in self._grant_info and self._grant_info['scope'] else '',
+                    'scope': (' '.join(self._grant_info['scope'])
+                              if 'scope' in self._grant_info and
+                              self._grant_info['scope']
+                              else ''),
                     'code': request_args['code'],
                     }
 
@@ -320,7 +348,10 @@ class Dailymotion(object):
                 'client_id': self._grant_info['key'],
                 'username': self._grant_info['username'],
                 'client_secret': self._grant_info['secret'],
-                'scope': ' '.join(self._grant_info['scope']) if 'scope' in self._grant_info and self._grant_info['scope'] else '',
+                'scope': (' '.join(self._grant_info['scope'])
+                          if 'scope' in self._grant_info and
+                          self._grant_info['scope']
+                          else ''),
                 }
             if self._grant_type == 'password':
                 params['password'] = self._grant_info['password']
@@ -356,7 +387,8 @@ class Dailymotion(object):
 
     def upload(self, file_path, progress=None):
         if not os.path.exists(file_path):
-            raise IOError("[Errno 2] No such file or directory: '%s'" % file_path)
+            raise IOError("[Errno 2] No such file or directory: '%s'" %
+                          file_path)
 
         if sys.version[0] == 2 and isinstance(file_path, unicode):
             file_path = file_path.encode('utf8')
@@ -365,19 +397,23 @@ class Dailymotion(object):
 
         result = self.get('/file/upload')
 
-        m = MultipartEncoder(fields={'file': (os.path.basename(file_path), open(file_path, 'rb'))})
+        m = MultipartEncoder(fields={'file': (os.path.basename(file_path),
+                                              open(file_path, 'rb'))})
 
         headers = {
-            'User-Agent': 'Dailymotion-Python/%s (Python %s)' % (__version__, __python_version__),
+            'User-Agent': 'Dailymotion-Python/%s (Python %s)' %
+                          (__version__, __python_version__),
             'Content-Type': m.content_type
         }
 
-        r = requests.post(result['upload_url'], data=m, headers=headers, timeout=self.timeout)
+        r = requests.post(result['upload_url'], data=m, headers=headers,
+                          timeout=self.timeout)
 
         try:
             response = json.loads(r.text)
         except ValueError as e:
-            raise DailymotionUploadInvalidResponse('Invalid API server response.\n%s' % response)
+            raise DailymotionUploadInvalidResponse('Invalid API server '
+                                                   'response.\n%s' % response)
         if 'error' in response:
             raise DailymotionUploadError(response['error'])
 
@@ -390,18 +426,21 @@ class Dailymotion(object):
             url = endpoint
         else:
             if endpoint.find('/') != 0:
-                raise DailymotionClientError('Endpoint must start with / (eg:/me/video)')
+                raise DailymotionClientError('Endpoint must start with / '
+                                             '(eg:/me/video)')
             url = '%s%s' % (self.api_base_url, endpoint)
 
         method = method.lower()
 
         if method not in ('get', 'post', 'delete'):
-            raise DailymotionClientError('Method must be of GET, POST or DELETE')
+            raise DailymotionClientError('Method must be of GET, POST or '
+                                         'DELETE')
 
         func = getattr(requests, method)
         try:
             if method == 'get':
-                response = func(url, params=params, headers=self._headers, timeout=self.timeout)
+                response = func(url, params=params, headers=self._headers,
+                                timeout=self.timeout)
             else:
                 response = func(url,
                                 data=params,
@@ -410,33 +449,40 @@ class Dailymotion(object):
                                 timeout=self.timeout)
 
         except requests.exceptions.ConnectionError:
-            raise DailymotionClientError('Network problem (DNS failure, refused connection...).')
+            raise DailymotionClientError('Network problem (DNS failure, '
+                                         'refused connection...).')
         except requests.exceptions.HTTPError:
             raise DailymotionClientError('Invalid HTTP response')
         except requests.exceptions.Timeout:
-            raise DailymotionApiError('The request times out, current timeout is = %s' % self.timeout)
+            raise DailymotionApiError('The request times out, current timeout '
+                                      'is = %s' % self.timeout)
         except requests.exceptions.TooManyRedirects:
-            raise DailymotionApiError('The request exceeds the configured number of maximum redirections')
+            raise DailymotionApiError('The request exceeds the configured '
+                                      'number of maximum redirections')
         except requests.exceptions.RequestException:
             raise DailymotionClientError('An unknown error occurred.')
 
         try:
-            content = response.json if isinstance(response.json, dict) else response.json()
+            content = (response.json if isinstance(response.json, dict)
+                       else response.json())
         except ValueError:
-            raise DailymotionApiError('Unable to parse response, invalid JSON.')
-
+            raise DailymotionApiError('Unable to parse response, invalid '
+                                      'JSON.')
 
         if (response.status_code != 200 and
                 content.get('error') is not None):
             if response.status_code in (400, 401, 403):
                 authenticate_header = response.headers.get('www-authenticate')
                 if authenticate_header:
-                    m = re.match('.*error="(.*?)"(?:, error_description="(.*?)")?', authenticate_header)
+                    m = re.match(
+                            '.*error="(.*?)"(?:, error_description="(.*?)")?',
+                            authenticate_header)
                     if m:
                         error = m.group(1)
                         msg = m.group(2)
                         if error == 'expired_token':
-                            raise DailymotionTokenExpired(msg, error_type=error)
+                            raise DailymotionTokenExpired(msg,
+                                                          error_type=error)
                     raise DailymotionAuthError(msg, error_type='auth_error')
 
             error = content['error']
