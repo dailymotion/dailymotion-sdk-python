@@ -413,7 +413,7 @@ class Dailymotion(object):
             response = json.loads(r.text)
         except ValueError:
             raise DailymotionUploadInvalidResponse('Invalid API server '
-                                                   'response.\n%s' % response)
+                                                   'response.\n%s' % r.text)
         if 'error' in response:
             raise DailymotionUploadError(response['error'])
 
