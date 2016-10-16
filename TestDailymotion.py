@@ -145,10 +145,9 @@ class TestA(unittest.TestCase):
             'https?://(?:www)?(?:[\w-]{2,255}(?:\.\w{2,6}){1,2})'
             '(?:/[\w&%?#-]{1,300})?', url) is None, False)
         d.post('/videos', {'url': url,
-                            'title': 'my_test_upload_%s' % time.strftime("%c"),
-                            'published': 'true',
-                            'channel': 'news'
-                        })
+                           'title': 'my_test_upload_%s' % time.strftime("%c"),
+                           'published': 'true',
+                           'channel': 'news'})
         d.logout()
 
 
