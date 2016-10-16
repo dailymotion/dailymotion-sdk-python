@@ -240,7 +240,7 @@ class Dailymotion(object):
             'scope': result['scope'] if 'scope' in result else [],
             }
 
-        if self._session_store_enabled and self._session_store != None:
+        if self._session_store_enabled and self._session_store is not None:
             self._session_store.set(result)
         return result
 

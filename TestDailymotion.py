@@ -56,7 +56,7 @@ class TestA(unittest.TestCase):
         d = dailymotion.Dailymotion(api_base_url=self.api_base_url, oauth_authorize_endpoint_url=self.oauth_authorize_endpoint_url)
         d.set_grant_type('authorization', api_key=self.api_key, api_secret=self.api_secret, scope=self.scope, info={'redirect_uri': self.redirect_uri})
         authorization_url = d.get_authorization_url(redirect_uri=self.redirect_uri, scope=self.scope)
-        self.assertEqual(re.match('https?://(?:www)?(?:[\w-]{2,255}(?:\.\w{2,6}){1,2})(?:/[\w&%?#-]{1,300})?', authorization_url) == None, False)
+        self.assertEqual(re.match('https?://(?:www)?(?:[\w-]{2,255}(?:\.\w{2,6}){1,2})(?:/[\w&%?#-]{1,300})?', authorization_url) is None, False)
 
     def test_get_access_token(self):
         d = dailymotion.Dailymotion(api_base_url=self.api_base_url,
@@ -94,7 +94,7 @@ class TestA(unittest.TestCase):
 
         d.set_grant_type('password', api_key=self.api_key, api_secret=self.api_secret, scope=self.scope, info={'username': self.username, 'password': self.password})
         url = d.upload('./examples/video.mp4')
-        self.assertEqual(re.match('https?://(?:www)?(?:[\w-]{2,255}(?:\.\w{2,6}){1,2})(?:/[\w&%?#-]{1,300})?',url) == None, False)
+        self.assertEqual(re.match('https?://(?:www)?(?:[\w-]{2,255}(?:\.\w{2,6}){1,2})(?:/[\w&%?#-]{1,300})?',url) is None, False)
         d.post('/videos', {'url': url,
                             'title': 'my_test_upload_%s' % time.strftime("%c"),
                             'published': 'true',
