@@ -150,7 +150,6 @@ class TestA(unittest.TestCase):
                            'channel': 'news'})
         d.logout()
 
-
     def test_session_store_option(self):
         d = dailymotion.Dailymotion(session_store_enabled=False)
         self.assertFalse(d._session_store_enabled)
