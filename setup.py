@@ -22,7 +22,7 @@ setup(name='dailymotion',
       license='Apache License, Version 2.0',
       include_package_data=True,
       zip_safe=False,
-      py_modules = ['dailymotion',],
+      py_modules=['dailymotion'],
       install_requires=[
           'requests',
           'requests_toolbelt'
