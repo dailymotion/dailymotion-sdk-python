@@ -395,7 +395,7 @@ class Dailymotion(object):
 
         method = method.lower()
 
-        if not method in ('get', 'post', 'delete'):
+        if method not in ('get', 'post', 'delete'):
             raise DailymotionClientError('Method must be of GET, POST or DELETE')
 
         func = getattr(requests, method)
