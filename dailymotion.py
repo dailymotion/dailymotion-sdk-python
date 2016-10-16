@@ -426,23 +426,23 @@ class Dailymotion(object):
             raise DailymotionApiError('Unable to parse response, invalid JSON.')
 
 
-        if response.status_code != 200:
-            if content.get('error') is not None:
-                if response.status_code in (400, 401, 403):
-                    authenticate_header = response.headers.get('www-authenticate')
-                    if authenticate_header:
-                        m = re.match('.*error="(.*?)"(?:, error_description="(.*?)")?', authenticate_header)
-                        if m:
-                            error = m.group(1)
-                            msg = m.group(2)
-                            if error == 'expired_token':
-                                raise DailymotionTokenExpired(msg, error_type=error)
-                        raise DailymotionAuthError(msg, error_type='auth_error')
+        if (response.status_code != 200 and
+                content.get('error') is not None):
+            if response.status_code in (400, 401, 403):
+                authenticate_header = response.headers.get('www-authenticate')
+                if authenticate_header:
+                    m = re.match('.*error="(.*?)"(?:, error_description="(.*?)")?', authenticate_header)
+                    if m:
+                        error = m.group(1)
+                        msg = m.group(2)
+                        if error == 'expired_token':
+                            raise DailymotionTokenExpired(msg, error_type=error)
+                    raise DailymotionAuthError(msg, error_type='auth_error')
 
-                error = content['error']
-                error_type = error.get('type', '')
-                error_message = error.get('message', '')
+            error = content['error']
+            error_type = error.get('type', '')
+            error_message = error.get('message', '')
 
-                raise DailymotionApiError(error_message, error_type=error_type)
+            raise DailymotionApiError(error_message, error_type=error_type)
 
         return content
