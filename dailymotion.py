@@ -17,14 +17,6 @@ try:
 except ImportError:  # Python 2
     from urllib import urlencode
 
-try:
-    from urllib.parse import parse_qsl
-except ImportError:  # Python 2
-    try:
-        from urlparse import parse_qsl
-    except ImportError:  # Python < 2.6
-        from cgi import parse_qsl
-
 
 class DailymotionClientError(Exception):
     def __init__(self, message, error_type=None):

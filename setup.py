@@ -1,5 +1,4 @@
-from setuptools import setup, find_packages
-import os, sys
+from setuptools import setup
 
 setup(name='dailymotion',
       version='0.2.2',
