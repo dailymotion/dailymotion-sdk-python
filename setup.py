@@ -1,11 +1,11 @@
-from setuptools import setup, find_packages
-import os, sys
+from setuptools import setup
 
 setup(name='dailymotion',
       version='0.2.2',
       description='Dailymotion API SDK',
       long_description='Dailymotion API SDK',
-      download_url='https://github.com/dailymotion/dailymotion-sdk-python/archive/0.2.2.tar.gz',
+      download_url=('https://github.com/dailymotion/dailymotion-sdk-python/'
+                    'archive/0.2.2.tar.gz'),
       classifiers=[
         "Programming Language :: Python",
         "Development Status :: 5 - Production/Stable",
@@ -22,9 +22,8 @@ setup(name='dailymotion',
       license='Apache License, Version 2.0',
       include_package_data=True,
       zip_safe=False,
-      py_modules = ['dailymotion',],
+      py_modules=['dailymotion'],
       install_requires=[
           'requests',
           'requests_toolbelt'
-      ],
-)
+      ])
