@@ -9,7 +9,7 @@ import json
 from collections import defaultdict
 
 __author__ = 'Samir AMZANI <samir.amzani@gmail.com>'
-__version__ = '0.2.2'
+__version__ = '0.2.3'
 __python_version__ = '.'.join([str(i) for i in sys.version_info[:3]])
 
 try:
