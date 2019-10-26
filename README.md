@@ -52,7 +52,7 @@ d.post('/me/videos',
 Set your own access_token (assuming your access_token is valide):
 
 ```python
-d = dailymotion.Dailymotion
+d = dailymotion.Dailymotion()
 d.set_access_token(YOUR_ACCESS_TOKEN)
 d.get('/me')
 ```
