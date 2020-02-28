@@ -9,7 +9,7 @@ import json
 from collections import defaultdict
 
 __author__ = 'Samir AMZANI <samir.amzani@gmail.com>'
-__version__ = '0.2.3'
+__version__ = '0.2.4'
 __python_version__ = '.'.join([str(i) for i in sys.version_info[:3]])
 
 try:
@@ -181,8 +181,6 @@ class Dailymotion(object):
             MUST NOT be stored by the client.
         """
 
-        self.access_token = None
-
         if api_key and api_secret:
             self._grant_info['key'] = api_key
             self._grant_info['secret'] = api_secret
@@ -261,9 +259,6 @@ class Dailymotion(object):
 
         if access_token is None and self._grant_type is None:
             return None
-
-        if access_token:
-            return access_token
 
         if self._session_store_enabled and access_token is not None:
             if access_token and not force_refresh and time.time() < self._session_store.get_value('expires', 0):
@@ -420,7 +415,7 @@ class Dailymotion(object):
                         if m:
                             error = m.group(1)
                             msg = m.group(2)
-                            if error == 'expired_token':
+                            if error == 'invalid_token':
                                 raise DailymotionTokenExpired(msg, error_type=error)
                         raise DailymotionAuthError(msg, error_type='auth_error')
 
