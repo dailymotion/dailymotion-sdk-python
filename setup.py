@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 import os, sys
 
 setup(name='dailymotion',
-      version='0.2.3',
+      version='0.2.5',
       description='Dailymotion API SDK',
       long_description='Dailymotion API SDK',
       classifiers=[
@@ -25,6 +25,9 @@ setup(name='dailymotion',
       py_modules = ['dailymotion',],
       install_requires=[
           'requests',
-          'requests_toolbelt'
+          'requests_toolbelt',
+          'aiohttp;python_version>"3.4"',
+          'aiofiles;python_version>"3.4"',
+          'asyncio;python_version>"3.4"'
       ],
 )

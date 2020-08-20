@@ -5,6 +5,7 @@ import re
 import time
 import os
 import pytest
+import sys
 
 class TestA(unittest.TestCase):
 
@@ -17,6 +18,7 @@ class TestA(unittest.TestCase):
         self.password                       = config.PASSWORD
         self.scope                          = ['manage_videos', 'manage_playlists', 'userinfo']
         self.redirect_uri                   = config.REDIRECT_URI
+        self.file_path                      = config.VIDEO_PATH or './examples/video.mp4'
         self.oauth_authorize_endpoint_url   = config.OAUTH_AUTHORIZE_URL or 'https://api.dailymotion.com/oauth/authorize'
         self.oauth_token_endpoint_url       = config.OAUTH_TOKEN_URL or 'https://api.dailymotion.com/oauth/token'
         self.session_file_directory  = './data'
@@ -44,23 +46,20 @@ class TestA(unittest.TestCase):
         self.assertEqual(videos['has_more'], True)
         self.assertEqual('list' in videos, True)
         self.assertEqual(len(videos['list']) > 0, True)
-    
-    @pytest.mark.skip
+
     def test_set_grant_type(self):
         d = dailymotion.Dailymotion()
         self.assertRaises(dailymotion.DailymotionClientError, d.set_grant_type, 'password', api_secret=self.api_secret, scope=self.scope,
             info={'username': self.username, 'password': self.password})
         self.assertRaises(dailymotion.DailymotionClientError, d.set_grant_type, 'password', api_secret=self.api_secret, scope=self.scope)
         self.assertRaises(dailymotion.DailymotionClientError, d.set_grant_type, 'password', api_secret=self.api_secret, scope=None)
-    
-    @pytest.mark.skip
+
     def test_get_authorization_url(self):
         d = dailymotion.Dailymotion(api_base_url=self.api_base_url, oauth_authorize_endpoint_url=self.oauth_authorize_endpoint_url)
         d.set_grant_type('authorization', api_key=self.api_key, api_secret=self.api_secret, scope=self.scope, info={'redirect_uri' : self.redirect_uri})
         authorization_url = d.get_authorization_url(redirect_uri=self.redirect_uri, scope=self.scope)
         self.assertEqual(re.match('https?://(?:www)?(?:[\w-]{2,255}(?:\.\w{2,6}){1,2})(?:/[\w&%?#-]{1,300})?',authorization_url) == None, False)
-    
-    @pytest.mark.skip
+
     def test_get_access_token(self):
         d = dailymotion.Dailymotion(api_base_url=self.api_base_url,
                                 oauth_authorize_endpoint_url=self.oauth_authorize_endpoint_url,
@@ -70,7 +69,6 @@ class TestA(unittest.TestCase):
         self.assertEqual(isinstance (access_token, str) or isinstance(access_token, unicode), True)
         d.logout()
 
-    @pytest.mark.skip
     def test_set_access_token(self):
         d = dailymotion.Dailymotion()
         d.set_grant_type('password', api_key=self.api_key, api_secret=self.api_secret, scope=self.scope, info={'username': self.username, 'password': self.password})
@@ -79,7 +77,6 @@ class TestA(unittest.TestCase):
         self.assertEqual(isinstance (response.get('fullname'), str) or isinstance(response.get('fullname'), unicode), True)
         d.logout()
 
-    @pytest.mark.skip
     def test_auth_call(self):
         d = dailymotion.Dailymotion(api_base_url=self.api_base_url,
                                 oauth_authorize_endpoint_url=self.oauth_authorize_endpoint_url,
@@ -91,7 +88,6 @@ class TestA(unittest.TestCase):
         self.assertEqual(isinstance (response.get('fullname'), str) or isinstance(response.get('fullname'), unicode), True)
         d.logout()
 
-    @pytest.mark.skip
     def test_upload(self):
         d = dailymotion.Dailymotion(api_base_url=self.api_base_url,
                                 oauth_authorize_endpoint_url=self.oauth_authorize_endpoint_url,
@@ -99,13 +95,34 @@ class TestA(unittest.TestCase):
                                 session_store_enabled=True)
 
         d.set_grant_type('password', api_key=self.api_key, api_secret=self.api_secret, scope=self.scope, info={'username': self.username, 'password': self.password})
-        url = d.upload('./examples/video.mp4')
+        url = d.upload(self.file_path)
         self.assertEqual(re.match('https?://(?:www)?(?:[\w-]{2,255}(?:\.\w{2,6}){1,2})(?:/[\w&%?#-]{1,300})?',url) == None, False)
-        d.post('/videos', {'url' : url,
+        video = d.post('/videos', {'url' : url,
                             'title' : 'my_test_upload_%s' % time.strftime("%c"),
                             'published' : 'true',
                             'channel' : 'news'
                         })
+        self.assertEqual('id' in video, True)
+        d.delete('/video/%s' % video['id'])
+        d.logout()
+
+    @pytest.mark.skipif(sys.version_info < (3, 5), reason="requires python3.5 or higher")
+    def test_xupload(self):
+        d = dailymotion.Dailymotion(api_base_url=self.api_base_url,
+                                oauth_authorize_endpoint_url=self.oauth_authorize_endpoint_url,
+                                oauth_token_endpoint_url=self.oauth_token_endpoint_url,
+                                session_store_enabled=True)
+
+        d.set_grant_type('password', api_key=self.api_key, api_secret=self.api_secret, scope=self.scope, info={'username': self.username, 'password': self.password})
+        url = d.upload(self.file_path, workers=5)
+        self.assertEqual(re.match('https?://(?:www)?(?:[\w-]{2,255}(?:\.\w{2,6}){1,2})(?:/[\w&%?#-]{1,300})?',url) == None, False)
+        video = d.post('/videos', {'url' : url,
+                            'title' : 'my_test_upload_%s' % time.strftime("%c"),
+                            'published' : 'true',
+                            'channel' : 'news'
+                        })
+        self.assertEqual('id' in video, True)
+        d.delete('/video/%s' % video['id'])
         d.logout()
 
 
@@ -119,7 +136,6 @@ class TestA(unittest.TestCase):
         d = dailymotion.Dailymotion(session_store_enabled=None)
         self.assertEqual(d.DEFAULT_SESSION_STORE, d._session_store_enabled)
 
-    @pytest.mark.skip
     def test_in_memory_session(self):
         d = dailymotion.Dailymotion(api_base_url=self.api_base_url,
                                 oauth_authorize_endpoint_url=self.oauth_authorize_endpoint_url,
@@ -133,7 +149,6 @@ class TestA(unittest.TestCase):
         self.assertEqual(second_access_token, access_token)
         d.logout()
 
-    @pytest.mark.skip
     def test_file_storage_session(self):
         fs = dailymotion.FileSessionStore(self.session_file_directory)
         d = dailymotion.Dailymotion(api_base_url=self.api_base_url,

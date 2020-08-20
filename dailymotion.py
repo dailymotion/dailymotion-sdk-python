@@ -9,7 +9,7 @@ import json
 from collections import defaultdict
 
 __author__ = 'Samir AMZANI <samir.amzani@gmail.com>'
-__version__ = '0.2.4'
+__version__ = '0.2.5'
 __python_version__ = '.'.join([str(i) for i in sys.version_info[:3]])
 
 try:
@@ -25,6 +25,10 @@ except ImportError:  # Python 2
     except ImportError:  # Python < 2.6
         from cgi import parse_qsl
 
+if sys.version_info > (3, 5):
+    import xupload
+else:  # Python < 3.5
+    xupload = None
 
 class DailymotionClientError(Exception):
     def __init__(self, message, error_type=None):
@@ -334,7 +338,7 @@ class Dailymotion(object):
 
         return self.request(endpoint, method, params, files)
 
-    def upload(self, file_path, progress=None):
+    def upload(self, file_path, progress=None, workers=0):
         if not os.path.exists(file_path):
             raise IOError("[Errno 2] No such file or directory: '%s'" % file_path)
 
@@ -344,20 +348,30 @@ class Dailymotion(object):
         file_path = os.path.abspath(os.path.expanduser(file_path))
 
         result = self.get('/file/upload')
-
-        m = MultipartEncoder(fields={'file': (os.path.basename(file_path), open(file_path, 'rb'))})
-
         headers = {
-            'User-Agent': 'Dailymotion-Python/%s (Python %s)' % (__version__, __python_version__),
-            'Content-Type': m.content_type
+            'User-Agent': 'Dailymotion-Python/%s (Python %s)' % (__version__, __python_version__)
         }
 
-        r = requests.post(result['upload_url'], data=m, headers=headers, timeout=self.timeout)
+        if workers > 0 and xupload:
+            x = xupload.Xupload(
+                result['upload_url'],
+                file_path,
+                workers=workers,
+                headers=headers,
+                progress=progress
+            )
+            response = x.start()
+        else:
+            m = MultipartEncoder(fields={'file': (os.path.basename(file_path), open(file_path, 'rb'))})
+            headers['Content-Type'] = m.content_type
 
-        try:
-            response = json.loads(r.text)
-        except ValueError as e:
-            raise DailymotionUploadInvalidResponse('Invalid API server response.\n%s' % response)
+            r = requests.post(result['upload_url'], data=m, headers=headers, timeout=self.timeout)
+
+            try:
+                response = json.loads(r.text)
+            except ValueError as e:
+                raise DailymotionUploadInvalidResponse('Invalid API server response.\n%s' % str(e))
+
         if 'error' in response:
             raise DailymotionUploadError(response['error'])
 
