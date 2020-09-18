@@ -26,89 +26,114 @@ class Xupload(object):
             if int(self._chunk_size / self._CHUNK_SIZE) > 0
             else int(self._chunk_size)
         )
-        self._chunks_details = {}
+        self._session = None
+        self._clients = []
         self._tasks = []
+        chunks = int(round(self._file_size / self._chunk_size / self._workers))
+
+        for index in range(self._workers):
+            start = index * self._chunk_size * chunks
+            end = (
+                self._file_size - 1
+                if index == self._workers - 1
+                else ((index + 1) * self._chunk_size * chunks) - 1
+            )
+            self._clients.append({
+                'start': start,
+                'offset': start,
+                'end': end,
+                'size': 0,
+                'sent': 0
+            })
 
     def start(self):
         loop = asyncio.get_event_loop()
-        loop.run_until_complete(self._prepare_queries())
-        result = loop.run_until_complete(self._upload_chunks())
+        result = loop.run_until_complete(self._run())
         loop.run_until_complete(asyncio.sleep(0.250))
         loop.close()
         return result
 
-    async def _prepare_queries(self):
-        start = 0
+    async def _prepare_handle(self, client):
         async with aiofiles.open(self._file_path, "rb") as file:
-            while start < self._file_size - 1:
-                end = (
-                    self._file_size - 1
-                    if start + self._chunk_size > self._file_size - 1
-                    else start + self._chunk_size - 1
-                )
-                size = min(self._chunk_size, end - start + 1)
-                data = await self._get_file_chunk(file, size, start)
-                headers = {
-                    **self._headers,
-                    **{
-                        "Accept": "*/*",
-                        "Content-Type": "application/octet-stream",
-                        "Content-Disposition": 'attachment; filename="'
-                        + os.path.basename(self._file_path)
-                        + '"',
-                        "Content-Range": "bytes {}-{}/{}".format(
-                            start, end, self._file_size
-                        ),
-                    },
+            client['size'] = min(self._chunk_size, client['end'] - client['offset'] + 1)
+            client['data'] = await self._get_file_chunk(file, client['size'], client['offset'])
+            client['headers'] = {
+                **self._headers,
+                **{
+                    'Accept': '*/*',
+                    'Content-Type': 'application/octet-stream',
+                    'Content-Disposition': 'attachment; filename="{}"'.format(
+                        os.path.basename(self._file_path)
+                    ),
+                    'Content-Range': 'bytes {}-{}/{}'.format(
+                        client['offset'],
+                        client['offset'] + client['size'] - 1,
+                        self._file_size
+                    )
                 }
+            }
+            self._tasks.append(
+                asyncio.ensure_future(self._post_chunk(self._url, client))
+            )
 
-                self._chunks_details[start] = {
-                    "size": size,
-                    "data": data,
-                    "headers": headers,
-                    "ended": False,
-                }
-                start += self._chunk_size
-
-    async def _upload_chunks(self):
-        timeout = aiohttp.ClientTimeout(total=self._QUERY_TIMEOUT)
-        conn = aiohttp.TCPConnector(limit=self._workers)
-        trace_config = aiohttp.TraceConfig()
+    async def _run(self):
+        self._session = aiohttp.ClientSession(
+            timeout=aiohttp.ClientTimeout(total=self._QUERY_TIMEOUT),
+            connector=aiohttp.TCPConnector(limit=self._workers)
+        )
 
         if self._progress:
-            trace_config.on_response_chunk_received.append(
-                self._on_response_chunk_received
-            )
             self._progress(0, self._file_size)
 
-        async with aiohttp.ClientSession(
-            timeout=timeout, connector=conn, trace_configs=[trace_config]
-        ) as session:
-            for uid in self._chunks_details:
-                self._tasks.append(
-                    asyncio.ensure_future(self._post_chunk(session, self._url, uid))
-                )
+        async with self._session:
+            for client in self._clients:
+                await self._prepare_handle(client)
 
-            try:
-                for r in await asyncio.gather(*self._tasks, return_exceptions=False):
-                    if r["status"] == 200:
-                        return r["content"]
-                    if 'content' in r and 'error' in r['content']:
-                        raise DailymotionXuploadError(r['content']['error'])
-                raise DailymotionXuploadError("Something went wrong.")
-            except Exception as e:
-                raise DailymotionXuploadError(e)
+            while len(self._tasks) > 0:
+                await asyncio.sleep(0.3)
+                for task in self._tasks:
+                    if task.done():
+                        self._tasks.remove(task)
+                        result = task.result()
+                        exception = task.exception()
 
-    async def _on_response_chunk_received(self, session, trace_config_ctx, params):
-        uid = trace_config_ctx.trace_request_ctx["uid"]
-        self._chunks_details[uid]["ended"] = True
-        current = 0
+                        if result['status'] == 200:
+                            if self._progress:
+                                self._progress(self._file_size, self._file_size)
+                            return result["content"]
+                        if result['status'] in (202, 416):
+                            client = self._get_client_from_request(result['request_info'])
+                            client['sent'] += client['size']
 
-        for req in self._chunks_details:
-            if self._chunks_details[req]["ended"]:
-                current += self._chunks_details[req]["size"]
+                            if self._progress:
+                                sent = 0
+                                for c in self._clients:
+                                    sent += c['sent']
+                                self._progress(min(sent,self._file_size), self._file_size)
 
-        self._progress(current, self._file_size)
+                            ranges = []
+                            range_header = result['headers'].get('Range').split('/')
+                            if len(range_header) > 0:
+                                ranges = [r.split('-') for r in range_header[0].split(',')]
+
+                            for r_start, r_end in [[int(i), int(j)] for i,j in ranges]:
+                                if client['start'] >= r_start and client['start'] < r_end:
+                                    if client['end'] <= r_end:
+                                        break
+                                    if (r_end - client['start'] + 1) % self._chunk_size == 0:
+                                        client['offset'] = r_end + 1
+                                        await self._prepare_handle(client)
+                                        break
+                        elif 'content' in result and 'error' in result['content']:
+                            return result['content']
+
+                        if exception:
+                            raise DailymotionXuploadError(str(exception))
+
+    def _get_client_from_request(self, request_info):
+        for client in self._clients:
+            if client['headers']['Content-Range'] == request_info.headers['Content-Range']:
+                return client
 
     @staticmethod
     def print_progress(current, total):
@@ -128,13 +153,12 @@ class Xupload(object):
             end="",
         )
 
-    async def _post_chunk(self, session, url, chunk_id):
-        async with session.post(
+    async def _post_chunk(self, url, client):
+        async with self._session.post(
             url,
-            data=self._chunks_details[chunk_id]["data"],
-            headers=self._chunks_details[chunk_id]["headers"],
+            data=client["data"],
+            headers=client["headers"],
             proxy=self.PROXY_SOCKET,
-            trace_request_ctx={"uid": chunk_id},
             expect100=True,
         ) as resp:
             return {

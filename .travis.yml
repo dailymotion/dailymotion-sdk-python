@@ -10,7 +10,7 @@ install:
   - pip install pytest-cov > /dev/null
   - pip install coveralls > /dev/null
 
-script: py.test --cov dailymotion.py --cov-report term-missing TestDailymotion.py
+script: py.test --cov dailymotion --cov-report term-missing TestDailymotion.py
 
 after_success:
   - coveralls
