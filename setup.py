@@ -2,7 +2,7 @@ from setuptools import setup, find_packages
 import os, sys
 
 setup(name='dailymotion',
-      version='0.2.3',
+      version='0.2.4',
       description='Dailymotion API SDK',
       long_description='Dailymotion API SDK',
       classifiers=[
