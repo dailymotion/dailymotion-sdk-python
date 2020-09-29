@@ -169,7 +169,7 @@ class Xupload(object):
             }
 
     async def _get_file_chunk(self, file, chunk_length, chunk_start=0):
-        file.seek(chunk_start)
+        await file.seek(chunk_start)
         return await file.read(chunk_length)
 
 
