@@ -27,7 +27,7 @@ setup(name='dailymotion',
       install_requires=[
           'requests',
           'requests_toolbelt',
-          'aiohttp;python_version>"3.4"',
+          'aiohttp!=4.0.0a1;python_version>"3.4"',
           'aiofiles;python_version>"3.4"',
           'asyncio;python_version>"3.4"'
       ],
