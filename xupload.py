@@ -10,7 +10,7 @@ class Xupload(object):
     _QUERY_TIMEOUT = 60 * 60
     _CHUNK_SIZE = 4 << 20
 
-    def __init__(self, upload_url, file_path, workers=1, headers={}, progress=None):
+    def __init__(self, upload_url, file_path, workers=1, headers=None, progress=None):
         if not os.path.exists(file_path):
             raise IOError("[Errno 2] No such file or directory: '%s'" % file_path)
 
@@ -18,7 +18,7 @@ class Xupload(object):
         self._file_path = file_path
         self._file_size = os.stat(self._file_path).st_size
         self._workers = int(max(1, min(workers, self._file_size / self._CHUNK_SIZE, 8)))
-        self._headers = headers
+        self._headers = headers if isinstance(headers,dict) else {}
         self._progress = progress
         self._chunk_size = self._file_size / self._workers
         self._chunk_size = (
