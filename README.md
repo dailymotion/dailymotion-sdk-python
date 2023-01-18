@@ -35,7 +35,7 @@ Authenticated call:
 d = dailymotion.Dailymotion()
 d.set_grant_type('password', api_key=API_KEY, api_secret=API_SECRET,
     scope=['userinfo'], info={'username': USERNAME, 'password': PASSWORD})
-d.get('/me', {'fields': 'id,fullname'})
+d.get('/user/<CHANNEL_ID>', {'fields': 'id,fullname'})
 ```
 
 Video upload:
@@ -45,7 +45,7 @@ d = dailymotion.Dailymotion()
 d.set_grant_type('password', api_key=API_KEY, api_secret=API_SECRET,
     scope=['manage_videos'], info={'username': USERNAME, 'password': PASSWORD})
 url = d.upload('./video.mp4')
-d.post('/me/videos',
+d.post('/user/<CHANNEL_ID>/videos',
     {'url': url, 'title': 'MyTitle', 'published': 'true', 'channel': 'news'})
 ```
 
@@ -54,7 +54,7 @@ Set your own access_token (assuming your access_token is valide):
 ```python
 d = dailymotion.Dailymotion
 d.set_access_token(YOUR_ACCESS_TOKEN)
-d.get('/me')
+d.get('/user/<CHANNEL_ID>')
 ```
 
 Authentication:
