@@ -100,7 +100,8 @@ class TestA(unittest.TestCase):
         video = d.post('/videos', {'url' : url,
                             'title' : 'my_test_upload_%s' % time.strftime("%c"),
                             'published' : 'true',
-                            'channel' : 'news'
+                            'channel' : 'news',
+                            'geoblocking': ["allow", "fr"],
                         })
         self.assertEqual('id' in video, True)
         d.delete('/video/%s' % video['id'])

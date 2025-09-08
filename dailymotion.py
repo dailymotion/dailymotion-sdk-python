@@ -327,6 +327,10 @@ class Dailymotion(object):
 
     def call(self, endpoint, method='GET', params=None, files=None):
         try:
+            if params and isinstance(params, dict):
+                for k, v in params.items():
+                    if isinstance(v, list):
+                        params[k] = ",".join(v)
             access_token = self.get_access_token()
             if access_token:
                 self._headers['Authorization'] = 'Bearer %s' % access_token
